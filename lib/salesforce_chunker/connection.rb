@@ -4,7 +4,7 @@ require "httparty"
 module SalesforceChunker
   class Connection
 
-    def initialize(username, password, security_token, sf_version="42.0", domain="test")
+    def initialize(username, password, security_token, domain, sf_version="42.0")
       @sf_version = sf_version
 
       url = "https://#{domain}.salesforce.com/services/Soap/u/#{sf_version}"

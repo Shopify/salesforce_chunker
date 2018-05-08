@@ -4,38 +4,44 @@ require "salesforce_chunker/job.rb"
 module SalesforceChunker
   class Client
 
-
-    def initialize(username, password, security_token, sf_version="42.0", domain="test", retry_seconds=10)
-      @connection = SalesforceChunker::Connection.new(username, password, security_token, sf_version, domain)
+    def initialize(username, password, security_token, domain="test", sf_version="42.0", retry_seconds=10)
+      @connection = SalesforceChunker::Connection.new(username, password, security_token, domain, sf_version)
       @retry_seconds = retry_seconds
     end
 
-    def query(soql="SELECT Name FROM Account", batch_size=1000, pk_chunking=true)
+    def query(soql="SELECT Name FROM Account", batch_size=10000)
+
+      # error unless block given?
 
       job = SalesforceChunker::Job.new(@connection, soql, batch_size)
+      retrieved_batch_ids = []
 
-      # while true
-      #   statuses = job.get_batch_statuses
+      # timeout after some period?
+      while true
+        job.get_batch_statuses.each do |status|
+          batch_id = status["id"]
 
-      #   sleep(@retry_seconds)
-      # end
+          # need to handle failed states
+          if !retrieved_batch_ids.include?(batch_id) && job.batch_ids.include?(batch_id) && status["state"] == "Completed"
 
-      # retry loop every n seconds until all batches completed
+            if status["numberRecordsProcessed"] > 0
+              job.retrieve_batch_results(batch_id).each do |result_id|
+                job.retrieve_results(batch_id, result_id).each do |result|
 
-        # job.get_batch_statuses
+                  # only works for Name
+                  name = result["Name"]
+                  yield(name)
+                end
+              end
+            end
 
-        # loop through all newly completed batches
+            retrieved_batch_ids.append(batch_id)
+          end
+        end
 
-          # loop through all results pages
-
-            # loop through all results returned on a page
-
-              # yield
-
-      job.close
+        break if retrieved_batch_ids.length == job.batch_ids.length
+        sleep(@retry_seconds)
+      end
     end
-
-    # private methods?
-
   end
 end
