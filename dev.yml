@@ -1,0 +1,16 @@
+# For internal Shopify employee use
+# the requirements below describe the required dependencies
+---
+name: salesforce-chunker
+
+up:
+- ruby: 2.5.0
+- bundler
+
+commands:
+  console:
+    desc: 'start a rails console'
+    run: bin/console
+  test:
+    desc: 'run the tests'
+    run: bundle exec rake test
