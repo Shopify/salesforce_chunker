@@ -21,9 +21,10 @@ module SalesforceChunker
         job.get_batch_statuses.each do |status|
           batch_id = status["id"]
 
-          # need to handle failed states
-          if !retrieved_batch_ids.include?(batch_id) && job.batch_ids.include?(batch_id) && status["state"] == "Completed"
+          next if retrieved_batch_ids.include?(batch_id)
 
+          # need to handle failed states
+          if status["state"] == "Completed"
             if status["numberRecordsProcessed"] > 0
               job.retrieve_batch_results(batch_id).each do |result_id|
                 job.retrieve_results(batch_id, result_id).each do |result|
@@ -39,7 +40,7 @@ module SalesforceChunker
           end
         end
 
-        break if retrieved_batch_ids.length == job.batch_ids.length
+        break if job.batches_count && retrieved_batch_ids.length == job.batches_count
         sleep(@retry_seconds)
       end
     end
