@@ -14,33 +14,33 @@ module SalesforceChunker
       raise StandardError.new("no block given") unless block_given?
 
       job = SalesforceChunker::Job.new(@connection, soql, batch_size)
-      retrieved_batch_ids = []
+      retrieved_batches = []
 
-      # timeout after some period?
       while true
-        job.get_batch_statuses.each do |status|
-          batch_id = status["id"]
+        job.get_batch_statuses.each do |batch|
+          next if retrieved_batches.include?(batch["id"])
 
-          next if retrieved_batch_ids.include?(batch_id)
-
-          # need to handle failed states
-          if status["state"] == "Completed"
-            if status["numberRecordsProcessed"] > 0
-              job.retrieve_batch_results(batch_id).each do |result_id|
-                job.retrieve_results(batch_id, result_id).each do |result|
-
-                  # only works for Name
-                  name = result["Name"]
-                  yield(name)
+          case batch["state"]
+          when "Queued", "InProgress", "NotProcessed"
+            next
+          when "Completed"
+            raise StandardError.new("records failed") if batch["numberRecordsFailed"] > 0
+            if batch["numberRecordsProcessed"] > 0
+              job.retrieve_batch_results(batch["id"]).each do |result_id|
+                job.retrieve_results(batch["id"], result_id).each do |result|
+                  result.tap { |h| h.delete("attributes") }
+                  yield(result)
                 end
               end
             end
-
-            retrieved_batch_ids.append(batch_id)
+            retrieved_batches.append(batch["id"])
+          when "Failed"
+            raise StandardError.new("batch failed") # possibly get more information?
           end
         end
 
-        break if job.batches_count && retrieved_batch_ids.length == job.batches_count
+        break if job.batches_count && retrieved_batches.length == job.batches_count
+        # timeout after some period?
         sleep(@retry_seconds)
       end
     end

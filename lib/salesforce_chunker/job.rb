@@ -5,6 +5,7 @@ module SalesforceChunker
     def initialize(connection, soql, batch_size)
       @connection = connection
       @job_id = ""
+      @initial_batch_id = ""
       @batches_count = nil
 
       create_job(batch_size)
@@ -14,14 +15,12 @@ module SalesforceChunker
     def get_batch_statuses
       response = @connection.get_json("job/#{@job_id}/batch")
       batches = response["batchInfo"]
-      first_batch = batches.shift
 
       if @batches_count.nil?
-        if first_batch && first_batch["state"] == "NotProcessed"
-          @batches_count = batches.length
+        initial_batch = batches.select { |batch| batch["id"] == @initial_batch_id }.first
+        if initial_batch && initial_batch["state"] == "NotProcessed"
+          @batches_count = batches.length - 1
           close
-        else
-          return []
         end
       end
       batches
@@ -51,6 +50,7 @@ module SalesforceChunker
 
     def create_batch(soql)
       response = @connection.post_json("job/#{@job_id}/batch", soql)
+      @initial_batch_id = response["id"]
     end
 
     def close
