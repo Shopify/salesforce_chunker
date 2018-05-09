@@ -9,11 +9,11 @@ module SalesforceChunker
       @retry_seconds = retry_seconds
     end
 
-    def query(soql="SELECT Name FROM Account", batch_size=10000)
+    def query(soql="SELECT Name FROM Account", batch_size=10000, entity="Account")
 
       raise StandardError.new("no block given") unless block_given?
 
-      job = SalesforceChunker::Job.new(@connection, soql, batch_size)
+      job = SalesforceChunker::Job.new(@connection, soql, batch_size, entity)
       retrieved_batches = []
 
       while true
