@@ -1,5 +1,4 @@
 require "httparty"
-# require "pry"
 
 module SalesforceChunker
   class Connection
@@ -25,30 +24,32 @@ module SalesforceChunker
           </env:Body>
       </env:Envelope>"
 
-      response = HTTParty.post(url, headers: headers, body: login_soap_request_body)
-      result = response.parsed_response["Envelope"]["Body"]["loginResponse"]["result"]
+      response = HTTParty.post(url, headers: headers, body: login_soap_request_body).parsed_response
+
+      begin
+        result = response["Envelope"]["Body"]["loginResponse"]["result"]
+      rescue NoMethodError
+        raise StandardError.new(response["Envelope"]["Body"]["Fault"]["faultstring"])
+      end
 
       @session_id = result["sessionId"]
       @instance = get_instance(result["serverUrl"])
-      @server_url = result["serverUrl"]
+
+      @base_url = "https://#{@instance}.salesforce.com/services/async/#{@sf_version}/"
+      @default_headers = { "Content-Type": "application/json", "X-SFDC-Session": @session_id }
     end
 
     def post_json(url, body, headers={})
-      url = "https://#{@instance}.salesforce.com/services/async/#{@sf_version}/" + url
-      headers = headers.merge({ "Content-Type": "application/json", "X-SFDC-Session": @session_id})
-      HTTParty.post(url, headers: headers, body: body).parsed_response
+      HTTParty.post(@base_url + url, headers: headers.merge(@default_headers), body: body).parsed_response
     end
 
     def get_json(url, headers={})
-      url = "https://#{@instance}.salesforce.com/services/async/#{@sf_version}/" + url
-      headers = headers.merge({ "Content-Type": "application/json", "X-SFDC-Session": @session_id})
-      HTTParty.get(url, headers: headers).parsed_response
+      HTTParty.get(@base_url + url, headers: headers.merge(@default_headers)).parsed_response
     end
 
-    # private
+    private
 
     def get_instance(server_url)
-      # this may not be very robust 
       /[a-z0-9]+.salesforce/.match(server_url)[0].split(".")[0]
     end
   end
