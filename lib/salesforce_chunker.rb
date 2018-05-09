@@ -11,7 +11,7 @@ module SalesforceChunker
 
     def query(soql="SELECT Name FROM Account", batch_size=10000)
 
-      # error unless block given?
+      raise StandardError.new("no block given") unless block_given?
 
       job = SalesforceChunker::Job.new(@connection, soql, batch_size)
       retrieved_batch_ids = []
