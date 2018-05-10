@@ -13,6 +13,7 @@ module SalesforceChunker
       default_options = {
         batch_size: 100000,
         retry_seconds: 10,
+        timeout_seconds: 3600,
       }
       options = default_options.merge(options)
 
@@ -21,6 +22,7 @@ module SalesforceChunker
 
       raise StandardError.new("no block given") unless block_given?
 
+      start_time = Time.now.to_i
       logger.info("#{tag} Initializing Query")
       job = SalesforceChunker::Job.new(@connection, query, entity, options[:batch_size])
       retrieved_batches = []
@@ -53,7 +55,8 @@ module SalesforceChunker
         end
 
         break if job.batches_count && retrieved_batches.length == job.batches_count
-        # timeout after some period?
+
+        raise StandardError.new("timeout") if (Time.now.to_i - start_time) > options[:timeout_seconds]
 
         logger.info("#{tag} Waiting #{options[:retry_seconds]} seconds")
         sleep(options[:retry_seconds])
