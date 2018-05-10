@@ -5,19 +5,24 @@ require 'logger'
 module SalesforceChunker
   class Client
 
-    def initialize(username, password, security_token, domain="test", sf_version="42.0", retry_seconds=10)
-      @connection = SalesforceChunker::Connection.new(username, password, security_token, domain, sf_version)
-      @retry_seconds = retry_seconds
+    def initialize(options)
+      @connection = SalesforceChunker::Connection.new(options)
     end
 
-    def query(soql="SELECT Name FROM Account", batch_size=10000, entity="Account", logger=nil, log_output=nil)
-      logger ||= Logger.new(log_output)
+    def query(query, entity, **options)
+      default_options = {
+        batch_size: 100000,
+        retry_seconds: 10,
+      }
+      options = default_options.merge(options)
+
+      logger = options[:logger] || Logger.new(options[:log_output])
       tag = "[salesforce_chunker]"
 
       raise StandardError.new("no block given") unless block_given?
 
       logger.info("#{tag} Initializing Query")
-      job = SalesforceChunker::Job.new(@connection, soql, batch_size, entity)
+      job = SalesforceChunker::Job.new(@connection, query, entity, options[:batch_size])
       retrieved_batches = []
 
       while true
@@ -50,8 +55,8 @@ module SalesforceChunker
         break if job.batches_count && retrieved_batches.length == job.batches_count
         # timeout after some period?
 
-        logger.info("#{tag} Waiting #{@retry_seconds} seconds")
-        sleep(@retry_seconds)
+        logger.info("#{tag} Waiting #{options[:retry_seconds]} seconds")
+        sleep(options[:retry_seconds])
       end
     end
   end

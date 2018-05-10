@@ -2,14 +2,14 @@ module SalesforceChunker
   class Job
     attr_reader :batches_count
 
-    def initialize(connection, soql, batch_size, entity)
+    def initialize(connection, query, entity, batch_size)
       @connection = connection
       @job_id = ""
       @initial_batch_id = ""
       @batches_count = nil
 
-      create_job(batch_size, entity)
-      create_batch(soql)
+      create_job(entity, batch_size)
+      create_batch(query)
     end
 
     def get_batch_statuses
@@ -36,7 +36,7 @@ module SalesforceChunker
 
     private
 
-    def create_job(batch_size=10000, entity)
+    def create_job(entity, batch_size)
       headers = {"Sforce-Enable-PKChunking": "true; chunkSize=#{batch_size};" }
       body = {
         "operation": "query",
@@ -48,8 +48,8 @@ module SalesforceChunker
       @job_id = response["id"]
     end
 
-    def create_batch(soql)
-      response = @connection.post_json("job/#{@job_id}/batch", soql)
+    def create_batch(query)
+      response = @connection.post_json("job/#{@job_id}/batch", query)
       @initial_batch_id = response["id"]
     end
 

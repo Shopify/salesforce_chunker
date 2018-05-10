@@ -3,10 +3,14 @@ require "httparty"
 module SalesforceChunker
   class Connection
 
-    def initialize(username, password, security_token, domain, sf_version="42.0")
-      @sf_version = sf_version
+    def initialize(options)
+      default_options = {
+        salesforce_version: "42.0",
+        domain: "login",
+      }
+      options = default_options.merge(options)
 
-      url = "https://#{domain}.salesforce.com/services/Soap/u/#{sf_version}"
+      url = "https://#{options[:domain]}.salesforce.com/services/Soap/u/#{options[:salesforce_version]}"
       headers = { "SOAPAction": "login", "Content-Type": "text/xml; charset=UTF-8" }
 
       login_soap_request_body = \
@@ -18,8 +22,8 @@ module SalesforceChunker
               xmlns:urn=\"urn:partner.soap.sforce.com\">
           <env:Body>
               <n1:login xmlns:n1=\"urn:partner.soap.sforce.com\">
-                  <n1:username>#{username}</n1:username>
-                  <n1:password>#{password}#{security_token}</n1:password>
+                  <n1:username>#{options[:username]}</n1:username>
+                  <n1:password>#{options[:password]}#{options[:security_token]}</n1:password>
               </n1:login>
           </env:Body>
       </env:Envelope>"
@@ -35,7 +39,7 @@ module SalesforceChunker
       @session_id = result["sessionId"]
       @instance = get_instance(result["serverUrl"])
 
-      @base_url = "https://#{@instance}.salesforce.com/services/async/#{@sf_version}/"
+      @base_url = "https://#{@instance}.salesforce.com/services/async/#{options[:salesforce_version]}/"
       @default_headers = { "Content-Type": "application/json", "X-SFDC-Session": @session_id }
     end
 
