@@ -26,12 +26,13 @@ module SalesforceChunker
       batches
     end
 
-    def retrieve_batch_results(batch_id)
-      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result")
-    end
-
-    def retrieve_results(batch_id, result_id)
-      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
+    def get_batch_results(batch_id)
+      retrieve_batch_results(batch_id).each do |result_id|
+        retrieve_results(batch_id, result_id).each do |result|
+          result.tap { |h| h.delete("attributes") }
+          yield(result)
+        end
+      end
     end
 
     private
@@ -51,6 +52,14 @@ module SalesforceChunker
     def create_batch(query)
       response = @connection.post_json("job/#{@job_id}/batch", query)
       @initial_batch_id = response["id"]
+    end
+
+    def retrieve_batch_results(batch_id)
+      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result")
+    end
+
+    def retrieve_results(batch_id, result_id)
+      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
     end
 
     def close
