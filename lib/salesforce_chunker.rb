@@ -20,7 +20,7 @@ module SalesforceChunker
       logger = options[:logger] || Logger.new(options[:log_output])
       tag = "[salesforce_chunker]"
 
-      raise StandardError.new("no block given") unless block_given?
+      raise StandardError, "No block given" unless block_given?
 
       start_time = Time.now.to_i
       logger.info("#{tag} Initializing Query")
@@ -36,7 +36,8 @@ module SalesforceChunker
           when "Queued", "InProgress", "NotProcessed"
             next
           when "Completed"
-            raise StandardError.new("records failed") if batch["numberRecordsFailed"] > 0
+            raise RecordError, "Failed records in batch" if batch["numberRecordsFailed"] > 0
+
             logger.info("#{tag} Batch #{retrieved_batches.length + 1} of #{job.batches_count || '?'}: " \
               "retrieving #{batch["numberRecordsProcessed"]} records")
             if batch["numberRecordsProcessed"] > 0
@@ -46,13 +47,13 @@ module SalesforceChunker
             end
             retrieved_batches.append(batch["id"])
           when "Failed"
-            raise StandardError.new("batch failed") # possibly get more information?
+            raise BatchError, "Batch failed: #{batch["stateMessage"]}"
           end
         end
 
         break if job.batches_count && retrieved_batches.length == job.batches_count
 
-        raise StandardError.new("timeout") if (Time.now.to_i - start_time) > options[:timeout_seconds]
+        raise TimeoutError, "Timeout during batch processing" if (Time.now.to_i - start_time) > options[:timeout_seconds]
 
         logger.info("#{tag} Waiting #{options[:retry_seconds]} seconds")
         sleep(options[:retry_seconds])
