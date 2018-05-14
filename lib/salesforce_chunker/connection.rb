@@ -37,7 +37,7 @@ module SalesforceChunker
       end
 
       @session_id = result["sessionId"]
-      @instance = get_instance(result["serverUrl"])
+      @instance = self.class.get_instance(result["serverUrl"])
 
       @base_url = "https://#{@instance}.salesforce.com/services/async/#{options[:salesforce_version]}/"
       @default_headers = { "Content-Type": "application/json", "X-SFDC-Session": @session_id }
@@ -53,7 +53,7 @@ module SalesforceChunker
 
     private
 
-    def get_instance(server_url)
+    def self.get_instance(server_url)
       /[a-z0-9]+.salesforce/.match(server_url)[0].split(".")[0]
     end
   end
