@@ -1,8 +1,8 @@
 # SalesforceChunker
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/salesforce_chunker`. To experiment with that code, run `bin/console` for an interactive prompt.
+The `salesforce_chunker` gem is a simple ruby library to query the Salesforce Bulk API and download the results one batch at a time in a memory effiecent manner using a `yield` statement.
 
-TODO: Delete this and the text above, and describe your gem
+Currently, only `query` is available.
 
 ## Installation
 
@@ -22,14 +22,45 @@ Or install it yourself as:
 
 ## Usage
 
+### Simple Example
+
 ```ruby
-BATCH_SIZE = 1000
+client = SalesforceChunker::Client.new(
+  username: "username", 
+  password: "password", 
+  security_token: "security_token",
+)
 
-sfchunker = SalesforceChunker::Client.new("username", "password", "security_token")
-soql = "Select Name From Account"
+client.query("Select Name From Account", "Account") { |result| process(result) }
+```
 
-sfchunker.query(soql, BATCH_SIZE) do |result|
-  stage(transform(result))
+### Initialize
+
+```ruby
+client = SalesforceChunker::Client.new(
+  username: "username",                 # required
+  password: "password",                 # required
+  security_token: "security_token",     # may be required depending on your Salesforce setup
+  domain: "login",                      # optional: defaults to "login"
+  salesforce_version: "42.0"            # optional: defaults to "42.0"
+)
+```
+
+### Query
+
+```ruby
+query = "Select Name from Account" # required. SOQL query.
+entity = "Account"                 # required. Sobject type.
+options = {
+  batch_size: 100000,              # optional: defaults to 100000. Number of records to process in a batch.
+  retry_seconds: 10,               # optional: defaults to 10. Number of seconds to wait before querying API for updated results.
+  timeout_seconds: 3600,           # optional: defaults to 3600. Number of seconds to wait before query is killed.
+  logger: nil,                     # optional: logger to use. Must be similar to rails logger.
+  log_output: nil,                 # optional: log output to use. i.e. STDOUT.
+}
+
+client.query(query, entity, options) do |result|
+  process(result)
 end
 ```
 
@@ -41,7 +72,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/salesforce_chunker.
+Bug reports and pull requests are welcome on GitHub at https://github.com/Shopify/salesforce_chunker.
 
 ## License
 
