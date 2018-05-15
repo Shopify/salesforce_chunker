@@ -22,8 +22,8 @@ module SalesforceChunker
               xmlns:urn=\"urn:partner.soap.sforce.com\">
           <env:Body>
               <n1:login xmlns:n1=\"urn:partner.soap.sforce.com\">
-                  <n1:username>#{options[:username]}</n1:username>
-                  <n1:password>#{options[:password]}#{options[:security_token]}</n1:password>
+                  <n1:username>#{options[:username].encode(xml: :text)}</n1:username>
+                  <n1:password>#{options[:password].encode(xml: :text)}#{options[:security_token].encode(xml: :text)}</n1:password>
               </n1:login>
           </env:Body>
       </env:Envelope>"
