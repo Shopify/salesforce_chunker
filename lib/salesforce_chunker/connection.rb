@@ -7,6 +7,9 @@ module SalesforceChunker
       default_options = {
         salesforce_version: "42.0",
         domain: "login",
+        username: "",
+        password: "",
+        security_token: "",
       }
       options = default_options.merge(options)
 

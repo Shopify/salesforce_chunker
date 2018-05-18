@@ -36,7 +36,7 @@ class ConnectionTest < Minitest::Test
   end
 
   def test_get_json_calls_get_with_correct_parameters
-    expected_url = "https://na99.salesforce.com/services/async/42.0/route"
+    expected_url = "https://na99.salesforce.com/services/async/42.0/getroute"
     expected_headers = { "Content-Type": "application/json", "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87" }
     HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
 
