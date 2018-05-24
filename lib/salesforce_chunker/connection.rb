@@ -6,14 +6,14 @@ module SalesforceChunker
     def initialize(options)
       default_options = {
         salesforce_version: "42.0",
-        host: "login.salesforce.com",
+        host: "login",
         username: "",
         password: "",
         security_token: "",
       }
       options = default_options.merge(options)
 
-      url = "https://#{options[:host]}/services/Soap/u/#{options[:salesforce_version]}"
+      url = "https://#{options[:host]}.salesforce.com/services/Soap/u/#{options[:salesforce_version]}"
       headers = { "SOAPAction": "login", "Content-Type": "text/xml; charset=UTF-8" }
 
       login_soap_request_body = \
@@ -36,11 +36,14 @@ module SalesforceChunker
       begin
         result = response["Envelope"]["Body"]["loginResponse"]["result"]
       rescue NoMethodError
-        raise StandardError.new(response["Envelope"]["Body"]["Fault"]["faultstring"])
+        raise SalesforceChunker::ConnectionError, response["Envelope"]["Body"]["Fault"]["faultstring"]
       end
 
-      @base_url = "https://#{options[:host]}/services/async/#{options[:salesforce_version]}/"
-      @default_headers = { "Content-Type": "application/json", "X-SFDC-Session": result["sessionId"] }
+      @session_id = result["sessionId"]
+      @instance = self.class.get_instance(result["serverUrl"])
+
+      @base_url = "https://#{@instance}.salesforce.com/services/async/#{options[:salesforce_version]}/"
+      @default_headers = { "Content-Type": "application/json", "X-SFDC-Session": @sessionId }
     end
 
     def post_json(url, body, headers={})
@@ -49,6 +52,12 @@ module SalesforceChunker
 
     def get_json(url, headers={})
       HTTParty.get(@base_url + url, headers: headers.merge(@default_headers)).parsed_response
+    end
+
+    private
+
+    def self.get_instance(server_url)
+      /https:\/\/(.*).salesforce.com/.match(server_url)[1]
     end
   end
 end

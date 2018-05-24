@@ -16,14 +16,14 @@ class ConnectionTest < Minitest::Test
   def test_error_raised_when_failure_response
     HTTParty.expects(:post).returns(login_response_fail)
 
-    assert_raises StandardError do
+    assert_raises SalesforceChunker::ConnectionError do
       SalesforceChunker::Connection.new({})
     end
   end
 
   def test_initialize_uses_correct_domain_and_version
     HTTParty.expects(:post).with("https://test.salesforce.com/services/Soap/u/37.0", anything).returns(login_response)
-    SalesforceChunker::Connection.new(domain: "test", salesforce_version: "37.0")
+    SalesforceChunker::Connection.new(host: "test", salesforce_version: "37.0")
   end
 
   def test_post_json_calls_post_with_correct_parameters
@@ -45,7 +45,20 @@ class ConnectionTest < Minitest::Test
   end
 
   def test_get_instance_extracts_instance
-    assert_equal "na99", SalesforceChunker::Connection.get_instance("https://na99.salesforce.com/something")
+    urls = [
+      "https://na99.salesforce.com/something",
+      "https://a.lot.of.dots.salesforce.com/something",
+      "https://dots.and-dashes--.salesforce.com/something",
+    ]
+
+    expected_instances = [
+      "na99",
+      "a.lot.of.dots",
+      "dots.and-dashes--",
+    ]
+
+    extracted_instances = urls.map { |url| SalesforceChunker::Connection.get_instance(url) }
+    assert_equal expected_instances, extracted_instances
   end
 
   private

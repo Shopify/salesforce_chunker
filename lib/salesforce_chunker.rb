@@ -1,4 +1,5 @@
 require "salesforce_chunker/connection.rb"
+require "salesforce_chunker/exceptions.rb"
 require "salesforce_chunker/job.rb"
 require 'logger'
 

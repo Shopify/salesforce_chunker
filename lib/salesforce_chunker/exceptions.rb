@@ -1,5 +1,8 @@
-module HTTParty
+module SalesforceChunker
   class Error < StandardError; end
+
+  # Raised when connecting with Salesforce fails
+  class ConnectionError < Error; end
 
   # Raised when Salesforce returns a failed batch
   class BatchError < Error; end
