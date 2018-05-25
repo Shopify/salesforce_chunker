@@ -23,8 +23,8 @@ class JobTest < Minitest::Test
     connection.expects(:get_json).with(
       "job/3811P00000EFQiYQAX/batch",
     ).returns({"batchInfo" => [
-      {"id"=> "55024000002iETSAA2", "state"=> "Completed"},
-      {"id"=> "55024000002iETTAA2", "state"=> "InProgress"},
+      {"id" => "55024000002iETSAA2", "state" => "Completed"},
+      {"id" => "55024000002iETTAA2", "state" => "InProgress"},
     ]})
     @job.instance_variable_set(:@connection, connection)
     @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
@@ -37,10 +37,10 @@ class JobTest < Minitest::Test
     connection.expects(:get_json).with(
       "job/3811P00000EFQiYQAX/batch",
     ).returns({"batchInfo" => [
-      {"id"=> "55024000002iETSAA2", "state"=> "NotProcessed"},
-      {"id"=> "55024000002iETTAA2", "state"=> "InProgress"},
-      {"id"=> "55024000002iETUAA2", "state"=> "InProgress"},
-      {"id"=> "55024000002iETVAA2", "state"=> "Completed"},
+      {"id" => "55024000002iETSAA2", "state" => "NotProcessed"},
+      {"id" => "55024000002iETTAA2", "state" => "InProgress"},
+      {"id" => "55024000002iETUAA2", "state" => "InProgress"},
+      {"id" => "55024000002iETVAA2", "state" => "Completed"},
     ]})
     @job.instance_variable_set(:@connection, connection)
     @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
@@ -56,7 +56,7 @@ class JobTest < Minitest::Test
     connection.expects(:get_json).with(
       "job/3811P00000EFQiYQAX/batch",
     ).returns({"batchInfo" => [
-      {"id"=> "55024000002iETSAA2", "state"=> "Queued"},
+      {"id" => "55024000002iETSAA2", "state" => "Queued"},
     ]})
     @job.instance_variable_set(:@connection, connection)
     @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
@@ -111,7 +111,7 @@ class JobTest < Minitest::Test
   def test_batch_sets_initial_batch_id
     connection = mock()
     connection.expects(:post_json).with(
-      "job/3811P00000EFQiYQAX/batch", 
+      "job/3811P00000EFQiYQAX/batch",
       "Select CustomColumn__c From CustomObject__c",
     ).returns({
       "id" => "55024000002iETSAA2"
