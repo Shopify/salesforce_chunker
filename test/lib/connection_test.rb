@@ -45,7 +45,20 @@ class ConnectionTest < Minitest::Test
   end
 
   def test_get_instance_extracts_instance
-    assert_equal "na99", SalesforceChunker::Connection.get_instance("https://na99.salesforce.com/something")
+    urls = [
+      "https://na99.salesforce.com/something",
+      "https://a.lot.of.dots.salesforce.com/something",
+      "https://dots.and-dashes--.salesforce.com/something",
+    ]
+
+    expected_instances = [
+      "na99",
+      "a.lot.of.dots",
+      "dots.and-dashes--",
+    ]
+
+    extracted_instances = urls.map { |url| SalesforceChunker::Connection.get_instance(url) }
+    assert_equal expected_instances, extracted_instances
   end
 
   private
