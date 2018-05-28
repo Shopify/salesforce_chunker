@@ -16,7 +16,7 @@ class ConnectionTest < Minitest::Test
   def test_error_raised_when_failure_response
     HTTParty.expects(:post).returns(login_response_fail)
 
-    assert_raises StandardError do
+    assert_raises SalesforceChunker::ConnectionError do
       SalesforceChunker::Connection.new({})
     end
   end
