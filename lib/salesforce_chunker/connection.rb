@@ -57,7 +57,7 @@ module SalesforceChunker
     private
 
     def self.get_instance(server_url)
-      /[a-z0-9]+.salesforce/.match(server_url)[0].split(".")[0]
+      /https:\/\/(.*).salesforce.com/.match(server_url)[1]
     end
   end
 end
