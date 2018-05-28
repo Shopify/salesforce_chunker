@@ -36,7 +36,7 @@ module SalesforceChunker
       begin
         result = response["Envelope"]["Body"]["loginResponse"]["result"]
       rescue NoMethodError
-        raise StandardError.new(response["Envelope"]["Body"]["Fault"]["faultstring"])
+        raise ConnectionError, response["Envelope"]["Body"]["Fault"]["faultstring"]
       end
 
       @session_id = result["sessionId"]
