@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     salesforce_chunker (0.1.0)
-      httparty (~> 0.16.2)
+      httparty (~> 0.13)
 
 GEM
   remote: https://rubygems.org/
