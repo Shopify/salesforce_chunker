@@ -35,6 +35,16 @@ class ConnectionTest < Minitest::Test
     assert_equal 1234, response
   end
 
+  def test_error_raised_when_invalid_response
+    expected_url = "https://na99.salesforce.com/services/async/42.0/route"
+    expected_headers = { "Content-Type": "application/json", "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87" }
+    HTTParty.expects(:post).with(expected_url, body: {"blah": true}, headers: expected_headers).returns(invalid_json_response)
+
+    assert_raises SalesforceChunker::ResponseError do
+      @connection.post_json("route", {"blah": true})
+    end
+  end
+
   def test_get_json_calls_get_with_correct_parameters
     expected_url = "https://na99.salesforce.com/services/async/42.0/getroute"
     expected_headers = { "Content-Type": "application/json", "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87" }
