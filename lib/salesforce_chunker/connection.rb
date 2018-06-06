@@ -47,17 +47,27 @@ module SalesforceChunker
     end
 
     def post_json(url, body, headers={})
-      HTTParty.post(@base_url + url, headers: headers.merge(@default_headers), body: body).parsed_response
+      response = HTTParty.post(@base_url + url, headers: headers.merge(@default_headers), body: body).parsed_response
+      self.class.check_response_error(response)
     end
 
     def get_json(url, headers={})
-      HTTParty.get(@base_url + url, headers: headers.merge(@default_headers)).parsed_response
+      response = HTTParty.get(@base_url + url, headers: headers.merge(@default_headers)).parsed_response
+      self.class.check_response_error(response)
     end
 
     private
 
     def self.get_instance(server_url)
       /https:\/\/(.*).salesforce.com/.match(server_url)[1]
+    end
+
+    def self.check_response_error(response)
+      if response.is_a?(Hash) && response.key?("exceptionCode")
+        raise ResponseError, "#{response["exceptionCode"]}: #{response["exceptionMessage"]}"
+      else
+        response
+      end
     end
   end
 end
