@@ -1,4 +1,5 @@
 require "salesforce_chunker/connection.rb"
+require "salesforce_chunker/connection/bulk_api.rb"
 require "salesforce_chunker/exceptions.rb"
 require "salesforce_chunker/job.rb"
 require 'logger'
@@ -6,8 +7,12 @@ require 'logger'
 module SalesforceChunker
   class Client
 
-    def initialize(options)
-      @connection = SalesforceChunker::Connection.new(options)
+    def initialize(options, bulk=true)
+      if bulk
+        @connection = SalesforceChunker::Connection::BulkApi.new(options)
+      else
+        @connection = SalesforceChunker::Connection::RestApi.new(options)
+      end
     end
 
     def query(query, entity, **options)
