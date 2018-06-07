@@ -4,6 +4,9 @@ module SalesforceChunker
   # Raised when connecting with Salesforce fails
   class ConnectionError < Error; end
 
+  # Raised when a request sent to Salesforce is invalid
+  class ResponseError < Error; end
+
   # Raised when Salesforce returns a failed batch
   class BatchError < Error; end
 

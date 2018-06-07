@@ -61,6 +61,12 @@ class ConnectionTest < Minitest::Test
     assert_equal expected_instances, extracted_instances
   end
 
+  def test_check_response_error_raises_error
+    assert_raises SalesforceChunker::ResponseError do
+      SalesforceChunker::Connection.check_response_error(invalid_json_response)
+    end
+  end
+
   private
 
   def login_response
@@ -92,6 +98,13 @@ class ConnectionTest < Minitest::Test
       }
     })
     parsed_response
+  end
+
+  def invalid_json_response
+    {
+      "exceptionCode"    => "InvalidRequest",
+      "exceptionMessage" => "Request is invalid"
+    }
   end
 
   def json_response
