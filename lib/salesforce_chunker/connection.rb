@@ -11,6 +11,7 @@ module SalesforceChunker
         password: "",
         security_token: "",
       }
+
       @base_url = ""
       @default_headers = { "Content-Type": "application/json" }
       @options = default_options.merge(options)

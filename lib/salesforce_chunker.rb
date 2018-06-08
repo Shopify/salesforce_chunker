@@ -54,7 +54,7 @@ module SalesforceChunker
 
     def rest_query(query)
       has_more = true
-      query = query.squish.gsub("+", "%2B")
+      query = query.gsub("\n", " ").gsub("+", "%2B").strip
       url = "/services/data/v#{@connection.version}/query/?q=#{query}"
 
       rows = 0
