@@ -3,7 +3,6 @@ module SalesforceChunker
 
     def initialize(options)
       super
-
       url = "https://#{@options[:domain]}.salesforce.com/services/Soap/u/#{@options[:salesforce_version]}"
       headers = { "SOAPAction": "login", "Content-Type": "text/xml; charset=UTF-8" }
 
