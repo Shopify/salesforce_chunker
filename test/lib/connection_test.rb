@@ -28,7 +28,11 @@ class ConnectionTest < Minitest::Test
 
   def test_post_json_calls_post_with_correct_parameters
     expected_url = "https://na99.salesforce.com/services/async/42.0/route"
-    expected_headers = { "Content-Type": "application/json", "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87" }
+    expected_headers = {
+      "Content-Type": "application/json",
+      "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
+      "Accept-Encoding": "gzip",
+    }
     HTTParty.expects(:post).with(expected_url, body: {"blah": true}, headers: expected_headers).returns(json_response)
 
     response = @connection.post_json("route", {"blah": true})
@@ -37,7 +41,11 @@ class ConnectionTest < Minitest::Test
 
   def test_get_json_calls_get_with_correct_parameters
     expected_url = "https://na99.salesforce.com/services/async/42.0/getroute"
-    expected_headers = { "Content-Type": "application/json", "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87" }
+    expected_headers = {
+      "Content-Type": "application/json",
+      "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
+      "Accept-Encoding": "gzip",
+    }
     HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
 
     response = @connection.get_json("getroute")
