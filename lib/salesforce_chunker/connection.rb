@@ -43,7 +43,11 @@ module SalesforceChunker
       @instance = self.class.get_instance(result["serverUrl"])
 
       @base_url = "https://#{@instance}.salesforce.com/services/async/#{options[:salesforce_version]}/"
-      @default_headers = { "Content-Type": "application/json", "X-SFDC-Session": @session_id }
+      @default_headers = {
+        "Content-Type": "application/json",
+        "X-SFDC-Session": @session_id,
+        "Accept-Encoding": "gzip",
+      }
     end
 
     def post_json(url, body, headers={})
