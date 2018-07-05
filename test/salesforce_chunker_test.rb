@@ -20,9 +20,7 @@ class SalesforceChunkerTest < Minitest::Test
 
   def test_raise_timeout_error_when_query_exceeds_timeout_seconds
     job = mock()
-    job.expects(:get_batch_statuses).at_least_once.returns([
-      {"id" => "55024000002iETSAA2", "state" => "Queued"},
-    ])
+    job.expects(:get_completed_batches).at_least_once.returns([])
     job.expects(:batches_count).at_least_once.returns(1)
 
     SalesforceChunker::Job.stubs(:new).returns(job)
@@ -33,57 +31,19 @@ class SalesforceChunkerTest < Minitest::Test
     end
   end
 
-  def test_raise_record_error_when_batch_completes_with_failed_records
-    job = mock()
-    job.expects(:get_batch_statuses).returns([
-      {"id" => "55024000002iETSAA2", "state" => "NotProcessed"},
-      {"id" => "55024000002iETTAA2", "state" => "InProgress"},
-      {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 0},
-      {"id" => "55024000002iETVAA2", "state" => "Completed", "numberRecordsFailed" => 1, "numberRecordsProcessed" => 0},
-    ])
-    job.expects(:batches_count).returns(3)
-
-    SalesforceChunker::Job.stubs(:new).returns(job)
-    assert_raises SalesforceChunker::RecordError do
-      @client.query("", "") do |result|
-        yield(result)
-      end
-    end
-  end
-
-  def test_raise_batch_error_when_batch_fails_to_process
-    job = mock()
-    job.expects(:get_batch_statuses).returns([
-      {"id" => "55024000002iETSAA2", "state" => "NotProcessed"},
-      {"id" => "55024000002iETTAA2", "state" => "InProgress"},
-      {"id" => "55024000002iETVAA2", "state" => "Failed", "stateMessage" => "Incorrect format"},
-    ])
-    job.expects(:batches_count).never
-
-    SalesforceChunker::Job.stubs(:new).returns(job)
-    assert_raises SalesforceChunker::BatchError do
-      @client.query("", "") do |result|
-        yield(result)
-      end
-    end
-  end
-
   def test_query_yields_batch_results
     job = mock()
 
-    first_batch_status = [
-      {"id" => "55024000002iETSAA2", "state" => "NotProcessed"},
-      {"id" => "55024000002iETTAA2", "state" => "InProgress"},
+    first_completed_batches = [
       {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3},
     ]
 
-    second_batch_status = [
-      {"id" => "55024000002iETSAA2", "state" => "NotProcessed"},
+    second_completed_batches = [
       {"id" => "55024000002iETTAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 1},
       {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3},
     ]
 
-    job.expects(:get_batch_statuses).twice.returns(first_batch_status, second_batch_status)
+    job.expects(:get_completed_batches).twice.returns(first_completed_batches, second_completed_batches)
 
     job.expects(:get_batch_results).with("55024000002iETUAA2").multiple_yields(
       [{"CustomColumn__c" => "abc"}],

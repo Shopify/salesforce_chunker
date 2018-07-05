@@ -30,26 +30,17 @@ module SalesforceChunker
 
       loop do
         logger.info("#{tag} Retrieving batch status information")
-        job.get_batch_statuses.each do |batch|
+        job.get_completed_batches.each do |batch|
           next if retrieved_batches.include?(batch["id"])
 
-          case batch["state"]
-          when "Queued", "InProgress", "NotProcessed"
-            next
-          when "Completed"
-            raise RecordError, "Failed records in batch" if batch["numberRecordsFailed"] > 0
-
-            logger.info("#{tag} Batch #{retrieved_batches.length + 1} of #{job.batches_count || '?'}: " \
-              "retrieving #{batch["numberRecordsProcessed"]} records")
-            if batch["numberRecordsProcessed"] > 0
-              job.get_batch_results(batch["id"]) do |result|
-                yield(result)
-              end
+          logger.info("#{tag} Batch #{retrieved_batches.length + 1} of #{job.batches_count || '?'}: " \
+            "retrieving #{batch["numberRecordsProcessed"]} records")
+          if batch["numberRecordsProcessed"] > 0
+            job.get_batch_results(batch["id"]) do |result|
+              yield(result)
             end
-            retrieved_batches.append(batch["id"])
-          when "Failed"
-            raise BatchError, "Batch failed: #{batch["stateMessage"]}"
           end
+          retrieved_batches.append(batch["id"])
         end
 
         break if job.batches_count && retrieved_batches.length == job.batches_count
