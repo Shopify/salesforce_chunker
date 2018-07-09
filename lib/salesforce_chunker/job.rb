@@ -12,6 +12,14 @@ module SalesforceChunker
       create_batch(query)
     end
 
+    def get_completed_batches
+      get_batch_statuses.select do |batch|
+        raise BatchError, "Batch failed: #{batch["stateMessage"]}" if batch["state"] == "Failed"
+        raise RecordError, "Failed records in batch" if batch["state"] == "Completed" && batch["numberRecordsFailed"] > 0
+        batch["state"] == "Completed"
+      end
+    end
+
     def get_batch_statuses
       response = @connection.get_json("job/#{@job_id}/batch")
       batches = response["batchInfo"]

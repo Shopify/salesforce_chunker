@@ -161,4 +161,40 @@ class JobTest < Minitest::Test
 
     @job.send(:close)
   end
+
+  def test_get_completed_batches_raises_record_error_on_failed_records
+    @job.expects(:get_batch_statuses).returns([
+      {"id" => "55024000002iETSAA2", "state" => "NotProcessed"},
+      {"id" => "55024000002iETTAA2", "state" => "InProgress"},
+      {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 0},
+      {"id" => "55024000002iETVAA2", "state" => "Completed", "numberRecordsFailed" => 1, "numberRecordsProcessed" => 0},
+    ])
+
+    assert_raises SalesforceChunker::RecordError do
+      @job.get_completed_batches
+    end
+  end
+
+  def test_get_completed_batches_raises_batch_error_on_failed_batch
+    @job.expects(:get_batch_statuses).returns([
+      {"id" => "55024000002iETSAA2", "state" => "NotProcessed"},
+      {"id" => "55024000002iETTAA2", "state" => "InProgress"},
+      {"id" => "55024000002iETVAA2", "state" => "Failed", "stateMessage" => "Incorrect format"},
+    ])
+
+    assert_raises SalesforceChunker::BatchError do
+      @job.get_completed_batches
+    end
+  end
+
+  def test_get_completed_batches_returns_completed_batches
+    @job.expects(:get_batch_statuses).returns([
+      {"id" => "55024000002iETSAA2", "state" => "NotProcessed"},
+      {"id" => "55024000002iETTAA2", "state" => "InProgress"},
+      {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3},
+    ])
+
+    expected = [{"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3}]
+    assert_equal expected, @job.get_completed_batches
+  end
 end
