@@ -22,16 +22,8 @@ module SalesforceChunker
 
     def get_batch_statuses
       response = @connection.get_json("job/#{@job_id}/batch")
-      batches = response["batchInfo"]
-
-      if @batches_count.nil?
-        initial_batch = batches.select { |batch| batch["id"] == @initial_batch_id }.first
-        if initial_batch && initial_batch["state"] == "NotProcessed"
-          @batches_count = batches.length - 1
-          close
-        end
-      end
-      batches
+      finalize_chunking_setup(response["batchInfo"]) if @batches_count.nil?
+      response["batchInfo"]
     end
 
     def get_batch_results(batch_id)
@@ -73,6 +65,14 @@ module SalesforceChunker
     def close
       body = {"state": "Closed"}.to_json
       @connection.post_json("job/#{@job_id}/", body)
+    end
+
+    def finalize_chunking_setup(batches)
+      initial_batch = batches.select { |batch| batch["id"] == @initial_batch_id }.first
+      if initial_batch && initial_batch["state"] == "NotProcessed"
+        @batches_count = batches.length - 1
+        close
+      end
     end
   end
 end
