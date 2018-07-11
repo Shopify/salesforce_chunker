@@ -4,10 +4,8 @@ module SalesforceChunker
 
     def initialize(connection, query, entity, batch_size)
       @connection = connection
-      @job_id = ""
       @batches_count = nil
-
-      create_job(entity, batch_size)
+      @job_id = create_job(entity, batch_size)
       @initial_batch_id = create_batch(query)
     end
 
@@ -43,9 +41,7 @@ module SalesforceChunker
         "object": entity,
         "contentType": "JSON"
       }.to_json
-
-      response = @connection.post_json("job", body, headers)
-      @job_id = response["id"]
+      @connection.post_json("job", body, headers)["id"]
     end
 
     def create_batch(query)

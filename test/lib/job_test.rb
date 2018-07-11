@@ -11,7 +11,9 @@ class JobTest < Minitest::Test
   end
 
   def test_initialize_creates_job_and_batch
-    SalesforceChunker::Job.any_instance.expects(:create_job).with("CustomObject__c", 4300)
+    SalesforceChunker::Job.any_instance.expects(:create_job)
+      .with("CustomObject__c", 4300)
+      .returns("3811P00000EFQiYQAZ")
     SalesforceChunker::Job.any_instance.expects(:create_batch)
       .with("Select CustomColumn__c From CustomObject__c")
       .returns("55024000002iETSAA2")
@@ -19,6 +21,7 @@ class JobTest < Minitest::Test
 
     assert_equal "connect", job.instance_variable_get(:@connection)
     assert_equal "55024000002iETSAA2", job.instance_variable_get(:@initial_batch_id)
+    assert_equal "3811P00000EFQiYQAZ", job.instance_variable_get(:@job_id)
   end
 
   def test_get_batch_statuses_returns_batches
@@ -120,7 +123,7 @@ class JobTest < Minitest::Test
     assert_equal expected_results, actual_results
   end
 
-  def test_create_job_sets_job_id
+  def test_create_job_sends_request
     connection = mock()
     connection.expects(:post_json).with(
       "job",
@@ -132,7 +135,6 @@ class JobTest < Minitest::Test
     @job.instance_variable_set(:@connection, connection)
 
     @job.send(:create_job, "CustomObject__c", 2500)
-    assert_equal "3811P00000EFQiYQAX", @job.instance_variable_get(:@job_id)
   end
 
   def test_create_batch_sends_request
