@@ -8,6 +8,7 @@ class JobTest < Minitest::Test
     @job = SalesforceChunker::Job.new(nil, "", "", nil)
     SalesforceChunker::Job.any_instance.unstub(:create_job)
     SalesforceChunker::Job.any_instance.unstub(:create_batch)
+    @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
   end
 
   def test_initialize_creates_job_and_batch
@@ -33,7 +34,6 @@ class JobTest < Minitest::Test
       {"id"=> "55024000002iETTAA2", "state"=> "InProgress"},
     ]})
     @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
 
     assert_equal 2, @job.get_batch_statuses.size
   end
@@ -47,7 +47,6 @@ class JobTest < Minitest::Test
       {"id"=> "55024000002iETTAA2", "state"=> "InProgress"},
     ]})
     @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
     @job.instance_variable_set(:@batches_count, nil)
     @job.expects(:finalize_chunking_setup)
 
@@ -65,7 +64,6 @@ class JobTest < Minitest::Test
       {"id"=> "55024000002iETVAA2", "state"=> "Completed"},
     ]})
     @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
     @job.instance_variable_set(:@batches_count, 3)
     @job.expects(:finalize_chunking_setup).never
 
@@ -146,7 +144,6 @@ class JobTest < Minitest::Test
       "id" => "55024000002iETSAA2"
     })
     @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
 
     @job.send(:create_batch, "Select CustomColumn__c From CustomObject__c")
   end
@@ -160,7 +157,6 @@ class JobTest < Minitest::Test
       "6502E000002jETSAA3",
     ])
     @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
 
     assert_equal ["6502E000002iETSAA3", "6502E000002jETSAA3"], @job.send(:retrieve_batch_results, "55024000002iETSAA2")
   end
@@ -173,7 +169,6 @@ class JobTest < Minitest::Test
       {CustomColumn__c: "abc"},
     ])
     @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
 
     assert_equal [{CustomColumn__c: "abc"}], @job.send(:retrieve_results, "55024000002iETSAA2", "6502E000002iETSAA3")
   end
@@ -185,7 +180,6 @@ class JobTest < Minitest::Test
       {"state": "Closed"}.to_json,
     ).returns([])
     @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
 
     @job.send(:close)
   end
