@@ -17,12 +17,6 @@ module SalesforceChunker
       end
     end
 
-    def get_batch_statuses
-      response = @connection.get_json("job/#{@job_id}/batch")
-      finalize_chunking_setup(response["batchInfo"]) if @batches_count.nil?
-      response["batchInfo"]
-    end
-
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
         retrieve_results(batch_id, result_id).each do |result|
@@ -34,6 +28,12 @@ module SalesforceChunker
 
     def create_batch(query)
       @connection.post_json("job/#{@job_id}/batch", query)["id"]
+    end
+
+    def get_batch_statuses
+      response = @connection.get_json("job/#{@job_id}/batch")
+      finalize_chunking_setup(response["batchInfo"]) if @batches_count.nil?
+      response["batchInfo"]
     end
 
     def retrieve_batch_results(batch_id)
