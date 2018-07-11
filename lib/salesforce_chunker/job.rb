@@ -32,18 +32,6 @@ module SalesforceChunker
       end
     end
 
-    private
-
-    def create_job(entity, batch_size)
-      headers = {"Sforce-Enable-PKChunking": "true; chunkSize=#{batch_size};" }
-      body = {
-        "operation": "query",
-        "object": entity,
-        "contentType": "JSON"
-      }.to_json
-      @connection.post_json("job", body, headers)["id"]
-    end
-
     def create_batch(query)
       @connection.post_json("job/#{@job_id}/batch", query)["id"]
     end
@@ -59,6 +47,18 @@ module SalesforceChunker
     def close
       body = {"state": "Closed"}.to_json
       @connection.post_json("job/#{@job_id}/", body)
+    end
+
+    private
+
+    def create_job(entity, batch_size)
+      headers = {"Sforce-Enable-PKChunking": "true; chunkSize=#{batch_size};" }
+      body = {
+        "operation": "query",
+        "object": entity,
+        "contentType": "JSON"
+      }.to_json
+      @connection.post_json("job", body, headers)["id"]
     end
 
     def finalize_chunking_setup(batches)

@@ -145,7 +145,7 @@ class JobTest < Minitest::Test
     })
     @job.instance_variable_set(:@connection, connection)
 
-    @job.send(:create_batch, "Select CustomColumn__c From CustomObject__c")
+    @job.create_batch("Select CustomColumn__c From CustomObject__c")
   end
 
   def test_retrieve_batch_results_returns_information
@@ -158,7 +158,7 @@ class JobTest < Minitest::Test
     ])
     @job.instance_variable_set(:@connection, connection)
 
-    assert_equal ["6502E000002iETSAA3", "6502E000002jETSAA3"], @job.send(:retrieve_batch_results, "55024000002iETSAA2")
+    assert_equal ["6502E000002iETSAA3", "6502E000002jETSAA3"], @job.retrieve_batch_results("55024000002iETSAA2")
   end
 
   def test_retrieve_results_returns_information
@@ -170,7 +170,7 @@ class JobTest < Minitest::Test
     ])
     @job.instance_variable_set(:@connection, connection)
 
-    assert_equal [{CustomColumn__c: "abc"}], @job.send(:retrieve_results, "55024000002iETSAA2", "6502E000002iETSAA3")
+    assert_equal [{CustomColumn__c: "abc"}], @job.retrieve_results("55024000002iETSAA2", "6502E000002iETSAA3")
   end
 
   def test_close_posts_json
@@ -181,7 +181,7 @@ class JobTest < Minitest::Test
     ).returns([])
     @job.instance_variable_set(:@connection, connection)
 
-    @job.send(:close)
+    @job.close
   end
 
   def test_get_completed_batches_raises_record_error_on_failed_records
