@@ -5,7 +5,8 @@ module SalesforceChunker
     def initialize(connection, query, entity, batch_size)
       @connection = connection
       @batches_count = nil
-      @job_id = create_job(entity, batch_size)
+      headers = {"Sforce-Enable-PKChunking": "true; chunkSize=#{batch_size};" }
+      @job_id = create_job(entity, headers)
       @initial_batch_id = create_batch(query)
     end
 
@@ -51,8 +52,7 @@ module SalesforceChunker
 
     private
 
-    def create_job(entity, batch_size)
-      headers = {"Sforce-Enable-PKChunking": "true; chunkSize=#{batch_size};" }
+    def create_job(entity, headers = {})
       body = {
         "operation": "query",
         "object": entity,

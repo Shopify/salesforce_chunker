@@ -13,7 +13,7 @@ class JobTest < Minitest::Test
 
   def test_initialize_creates_job_and_batch
     SalesforceChunker::Job.any_instance.expects(:create_job)
-      .with("CustomObject__c", 4300)
+      .with("CustomObject__c", {"Sforce-Enable-PKChunking": "true; chunkSize=4300;"},)
       .returns("3811P00000EFQiYQAZ")
     SalesforceChunker::Job.any_instance.expects(:create_batch)
       .with("Select CustomColumn__c From CustomObject__c")
@@ -126,13 +126,13 @@ class JobTest < Minitest::Test
     connection.expects(:post_json).with(
       "job",
       {"operation": "query", "object": "CustomObject__c", "contentType": "JSON"}.to_json,
-      {"Sforce-Enable-PKChunking": "true; chunkSize=2500;"},
+      {"header": "blah"},
     ).returns({
       "id" => "3811P00000EFQiYQAX"
     })
     @job.instance_variable_set(:@connection, connection)
 
-    @job.send(:create_job, "CustomObject__c", 2500)
+    @job.send(:create_job, "CustomObject__c", {"header": "blah"})
   end
 
   def test_create_batch_sends_request
