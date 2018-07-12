@@ -25,7 +25,13 @@ module SalesforceChunker
 
       start_time = Time.now.to_i
       logger.info("#{tag} Initializing Query")
-      job = SalesforceChunker::Job.new(@connection, query, entity, options[:batch_size])
+      job = SalesforceChunker::Job.new(
+        connection: @connection,
+        entity: entity,
+        operation: "query",
+        query: query,
+        batch_size: options[:batch_size],
+      )
       retrieved_batches = []
 
       loop do
