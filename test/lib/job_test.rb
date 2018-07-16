@@ -13,7 +13,7 @@ class JobTest < Minitest::Test
 
   def test_initialize_creates_job_and_batch
     SalesforceChunker::Job.any_instance.expects(:create_job)
-      .with("CustomObject__c", 4300)
+      .with("CustomObject__c", {"Sforce-Enable-PKChunking": "true; chunkSize=4300;"},)
       .returns("3811P00000EFQiYQAZ")
     SalesforceChunker::Job.any_instance.expects(:create_batch)
       .with("Select CustomColumn__c From CustomObject__c")
@@ -126,13 +126,13 @@ class JobTest < Minitest::Test
     connection.expects(:post_json).with(
       "job",
       {"operation": "query", "object": "CustomObject__c", "contentType": "JSON"}.to_json,
-      {"Sforce-Enable-PKChunking": "true; chunkSize=2500;"},
+      {"header": "blah"},
     ).returns({
       "id" => "3811P00000EFQiYQAX"
     })
     @job.instance_variable_set(:@connection, connection)
 
-    @job.send(:create_job, "CustomObject__c", 2500)
+    @job.send(:create_job, "CustomObject__c", {"header": "blah"})
   end
 
   def test_create_batch_sends_request
@@ -145,7 +145,7 @@ class JobTest < Minitest::Test
     })
     @job.instance_variable_set(:@connection, connection)
 
-    @job.send(:create_batch, "Select CustomColumn__c From CustomObject__c")
+    @job.create_batch("Select CustomColumn__c From CustomObject__c")
   end
 
   def test_retrieve_batch_results_returns_information
@@ -158,7 +158,7 @@ class JobTest < Minitest::Test
     ])
     @job.instance_variable_set(:@connection, connection)
 
-    assert_equal ["6502E000002iETSAA3", "6502E000002jETSAA3"], @job.send(:retrieve_batch_results, "55024000002iETSAA2")
+    assert_equal ["6502E000002iETSAA3", "6502E000002jETSAA3"], @job.retrieve_batch_results("55024000002iETSAA2")
   end
 
   def test_retrieve_results_returns_information
@@ -170,7 +170,7 @@ class JobTest < Minitest::Test
     ])
     @job.instance_variable_set(:@connection, connection)
 
-    assert_equal [{CustomColumn__c: "abc"}], @job.send(:retrieve_results, "55024000002iETSAA2", "6502E000002iETSAA3")
+    assert_equal [{CustomColumn__c: "abc"}], @job.retrieve_results("55024000002iETSAA2", "6502E000002iETSAA3")
   end
 
   def test_close_posts_json
@@ -181,7 +181,7 @@ class JobTest < Minitest::Test
     ).returns([])
     @job.instance_variable_set(:@connection, connection)
 
-    @job.send(:close)
+    @job.close
   end
 
   def test_get_completed_batches_raises_record_error_on_failed_records

@@ -5,7 +5,8 @@ module SalesforceChunker
     def initialize(connection, query, entity, batch_size)
       @connection = connection
       @batches_count = nil
-      @job_id = create_job(entity, batch_size)
+      headers = {"Sforce-Enable-PKChunking": "true; chunkSize=#{batch_size};" }
+      @job_id = create_job(entity, headers)
       @initial_batch_id = create_batch(query)
     end
 
@@ -17,12 +18,6 @@ module SalesforceChunker
       end
     end
 
-    def get_batch_statuses
-      response = @connection.get_json("job/#{@job_id}/batch")
-      finalize_chunking_setup(response["batchInfo"]) if @batches_count.nil?
-      response["batchInfo"]
-    end
-
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
         retrieve_results(batch_id, result_id).each do |result|
@@ -32,20 +27,14 @@ module SalesforceChunker
       end
     end
 
-    private
-
-    def create_job(entity, batch_size)
-      headers = {"Sforce-Enable-PKChunking": "true; chunkSize=#{batch_size};" }
-      body = {
-        "operation": "query",
-        "object": entity,
-        "contentType": "JSON"
-      }.to_json
-      @connection.post_json("job", body, headers)["id"]
-    end
-
     def create_batch(query)
       @connection.post_json("job/#{@job_id}/batch", query)["id"]
+    end
+
+    def get_batch_statuses
+      response = @connection.get_json("job/#{@job_id}/batch")
+      finalize_chunking_setup(response["batchInfo"]) if @batches_count.nil?
+      response["batchInfo"]
     end
 
     def retrieve_batch_results(batch_id)
@@ -59,6 +48,17 @@ module SalesforceChunker
     def close
       body = {"state": "Closed"}.to_json
       @connection.post_json("job/#{@job_id}/", body)
+    end
+
+    private
+
+    def create_job(entity, headers = {})
+      body = {
+        "operation": "query",
+        "object": entity,
+        "contentType": "JSON"
+      }.to_json
+      @connection.post_json("job", body, headers)["id"]
     end
 
     def finalize_chunking_setup(batches)
