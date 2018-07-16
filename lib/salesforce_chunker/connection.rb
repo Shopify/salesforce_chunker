@@ -51,6 +51,10 @@ module SalesforceChunker
     end
 
     def post_json(url, body, headers={})
+      post(url, body.to_json, headers)
+    end
+
+    def post(url, body, headers={})
       response = HTTParty.post(@base_url + url, headers: headers.merge(@default_headers), body: body).parsed_response
       self.class.check_response_error(response)
     end

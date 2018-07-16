@@ -69,7 +69,7 @@ class JobTest < Minitest::Test
     connection = mock()
     connection.expects(:post_json).with(
       "job",
-      {"operation": "query", "object": "CustomObject__c", "contentType": "JSON"}.to_json,
+      {"operation": "query", "object": "CustomObject__c", "contentType": "JSON"},
       {"header": "blah"},
     ).returns({
       "id" => "3811P00000EFQiYQAX"
@@ -82,7 +82,7 @@ class JobTest < Minitest::Test
 
   def test_create_batch_sends_request
     connection = mock()
-    connection.expects(:post_json).with(
+    connection.expects(:post).with(
       "job/3811P00000EFQiYQAX/batch", 
       "Select CustomColumn__c From CustomObject__c",
     ).returns({
@@ -122,7 +122,7 @@ class JobTest < Minitest::Test
     connection = mock()
     connection.expects(:post_json).with(
       "job/3811P00000EFQiYQAX/",
-      {"state": "Closed"}.to_json,
+      {"state": "Closed"},
     ).returns([])
     @job.instance_variable_set(:@connection, connection)
 

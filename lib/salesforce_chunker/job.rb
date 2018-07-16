@@ -27,7 +27,7 @@ module SalesforceChunker
     end
 
     def create_batch(query)
-      @connection.post_json("job/#{@job_id}/batch", query)["id"]
+      @connection.post("job/#{@job_id}/batch", query)["id"]
     end
 
     def get_batch_statuses
@@ -43,7 +43,7 @@ module SalesforceChunker
     end
 
     def close
-      body = {"state": "Closed"}.to_json
+      body = {"state": "Closed"}
       @connection.post_json("job/#{@job_id}/", body)
     end
 
@@ -54,7 +54,7 @@ module SalesforceChunker
         "operation": @operation,
         "object": entity,
         "contentType": "JSON"
-      }.to_json
+      }
       @connection.post_json("job", body, headers)["id"]
     end
   end
