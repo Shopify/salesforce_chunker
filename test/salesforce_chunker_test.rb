@@ -23,7 +23,7 @@ class SalesforceChunkerTest < Minitest::Test
     job.expects(:get_completed_batches).at_least_once.returns([])
     job.expects(:batches_count).at_least_once.returns(1)
 
-    SalesforceChunker::Job.stubs(:new).returns(job)
+    SalesforceChunker::PrimaryKeyChunkingQuery.stubs(:new).returns(job)
     assert_raises SalesforceChunker::TimeoutError do
       @client.query("", "", retry_seconds: 0, timeout_seconds: 0) do |result|
         yield(result)
@@ -65,7 +65,7 @@ class SalesforceChunkerTest < Minitest::Test
       {"CustomColumn__c" => "jkl"},
     ]
 
-    SalesforceChunker::Job.stubs(:new).returns(job)
+    SalesforceChunker::PrimaryKeyChunkingQuery.stubs(:new).returns(job)
     @client.query("", "", retry_seconds: 0) { |result| actual_results << result }
     assert_equal expected_results, actual_results
   end

@@ -6,9 +6,7 @@ module SalesforceChunker
       @connection = connection
       @operation = operation
       @batches_count = nil
-      headers = { "Sforce-Enable-PKChunking": "true; chunkSize=#{options[:batch_size]};" }
-      @job_id = create_job(entity, headers)
-      @initial_batch_id = create_batch(options[:query])
+      @job_id = create_job(entity, options[:headers])
     end
 
     def get_completed_batches
@@ -33,9 +31,7 @@ module SalesforceChunker
     end
 
     def get_batch_statuses
-      response = @connection.get_json("job/#{@job_id}/batch")
-      finalize_chunking_setup(response["batchInfo"]) if @batches_count.nil?
-      response["batchInfo"]
+      @connection.get_json("job/#{@job_id}/batch")["batchInfo"]
     end
 
     def retrieve_batch_results(batch_id)
@@ -60,14 +56,6 @@ module SalesforceChunker
         "contentType": "JSON"
       }.to_json
       @connection.post_json("job", body, headers)["id"]
-    end
-
-    def finalize_chunking_setup(batches)
-      initial_batch = batches.select { |batch| batch["id"] == @initial_batch_id }.first
-      if initial_batch && initial_batch["state"] == "NotProcessed"
-        @batches_count = batches.length - 1
-        close
-      end
     end
   end
 end
