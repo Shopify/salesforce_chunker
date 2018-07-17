@@ -5,7 +5,7 @@ class JobTest < Minitest::Test
   def setup
     SalesforceChunker::Job.any_instance.stubs(:create_job)
     SalesforceChunker::Job.any_instance.stubs(:create_batch)
-    @job = SalesforceChunker::Job.new(nil, "", "", nil)
+    @job = SalesforceChunker::Job.new(connection: nil, entity: nil, operation: nil)
     SalesforceChunker::Job.any_instance.unstub(:create_job)
     SalesforceChunker::Job.any_instance.unstub(:create_batch)
     @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
@@ -18,9 +18,17 @@ class JobTest < Minitest::Test
     SalesforceChunker::Job.any_instance.expects(:create_batch)
       .with("Select CustomColumn__c From CustomObject__c")
       .returns("55024000002iETSAA2")
-    job = SalesforceChunker::Job.new("connect", "Select CustomColumn__c From CustomObject__c", "CustomObject__c", 4300)
+
+    job = SalesforceChunker::Job.new(
+      connection: "connect",
+      entity: "CustomObject__c",
+      operation: "query",
+      query: "Select CustomColumn__c From CustomObject__c",
+      batch_size: 4300,
+    )
 
     assert_equal "connect", job.instance_variable_get(:@connection)
+    assert_equal "query", job.instance_variable_get(:@operation)
     assert_equal "55024000002iETSAA2", job.instance_variable_get(:@initial_batch_id)
     assert_equal "3811P00000EFQiYQAZ", job.instance_variable_get(:@job_id)
   end
@@ -131,6 +139,7 @@ class JobTest < Minitest::Test
       "id" => "3811P00000EFQiYQAX"
     })
     @job.instance_variable_set(:@connection, connection)
+    @job.instance_variable_set(:@operation, "query")
 
     @job.send(:create_job, "CustomObject__c", {"header": "blah"})
   end
