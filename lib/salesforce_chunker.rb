@@ -1,6 +1,7 @@
 require "salesforce_chunker/connection.rb"
 require "salesforce_chunker/exceptions.rb"
 require "salesforce_chunker/job.rb"
+require "salesforce_chunker/primary_key_chunking_query.rb"
 require 'logger'
 
 module SalesforceChunker
@@ -25,7 +26,7 @@ module SalesforceChunker
 
       start_time = Time.now.to_i
       logger.info("#{tag} Initializing Query")
-      job = SalesforceChunker::Job.new(
+      job = SalesforceChunker::PrimaryKeyChunkingQuery.new(
         connection: @connection,
         entity: entity,
         operation: "query",
