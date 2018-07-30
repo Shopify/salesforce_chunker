@@ -2,6 +2,8 @@ module SalesforceChunker
   class Job
     attr_reader :batches_count
 
+    QUERY_OPERATIONS = ["query", "queryall"].freeze
+
     def initialize(connection:, entity:, operation:, **options)
       @connection = connection
       @operation = operation
@@ -26,8 +28,12 @@ module SalesforceChunker
       end
     end
 
-    def create_batch(query)
-      @connection.post("job/#{@job_id}/batch", query)["id"]
+    def create_batch(data)
+      if QUERY_OPERATIONS.include?(@operation)
+        @connection.post("job/#{@job_id}/batch", data.to_s)["id"]
+      else
+        @connection.post_json("job/#{@job_id}/batch", data)["id"]
+      end
     end
 
     def get_batch_statuses
