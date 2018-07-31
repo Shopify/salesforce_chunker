@@ -26,16 +26,22 @@ class ConnectionTest < Minitest::Test
     SalesforceChunker::Connection.new(domain: "test", salesforce_version: "37.0")
   end
 
-  def test_post_json_calls_post_with_correct_parameters
+  def test_post_json_calls_post
+    @connection.expects(:post).with("route", "{\"foo\":false}", {}).returns(true)
+    assert @connection.post_json("route", {"foo": false})
+  end
+
+
+  def test_post_calls_post_with_correct_parameters
     expected_url = "https://na99.salesforce.com/services/async/42.0/route"
     expected_headers = {
       "Content-Type": "application/json",
       "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
       "Accept-Encoding": "gzip",
     }
-    HTTParty.expects(:post).with(expected_url, body: {"blah": true}, headers: expected_headers).returns(json_response)
+    HTTParty.expects(:post).with(expected_url, body: "blah", headers: expected_headers).returns(json_response)
 
-    response = @connection.post_json("route", {"blah": true})
+    response = @connection.post("route", "blah")
     assert_equal 1234, response
   end
 

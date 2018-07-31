@@ -69,7 +69,7 @@ class JobTest < Minitest::Test
     connection = mock()
     connection.expects(:post_json).with(
       "job",
-      {"operation": "query", "object": "CustomObject__c", "contentType": "JSON"}.to_json,
+      {"operation": "query", "object": "CustomObject__c", "contentType": "JSON"},
       {"header": "blah"},
     ).returns({
       "id" => "3811P00000EFQiYQAX"
@@ -80,17 +80,32 @@ class JobTest < Minitest::Test
     @job.send(:create_job, "CustomObject__c", {"header": "blah"})
   end
 
-  def test_create_batch_sends_request
+  def test_create_batch_sends_query_as_string
     connection = mock()
-    connection.expects(:post_json).with(
+    connection.expects(:post).with(
       "job/3811P00000EFQiYQAX/batch", 
       "Select CustomColumn__c From CustomObject__c",
     ).returns({
       "id" => "55024000002iETSAA2"
     })
     @job.instance_variable_set(:@connection, connection)
+    @job.instance_variable_set(:@operation, "query")
 
     @job.create_batch("Select CustomColumn__c From CustomObject__c")
+  end
+
+  def test_create_batch_sends_json
+    connection = mock()
+    connection.expects(:post_json).with(
+      "job/3811P00000EFQiYQAX/batch",
+      {"name": "bar.myshopify.com"},
+    ).returns({
+      "id" => "55024000002iETSAA3"
+    })
+    @job.instance_variable_set(:@connection, connection)
+    @job.instance_variable_set(:@operation, "insert")
+
+    @job.create_batch({"name": "bar.myshopify.com"})
   end
 
   def test_retrieve_batch_results_returns_information
@@ -122,7 +137,7 @@ class JobTest < Minitest::Test
     connection = mock()
     connection.expects(:post_json).with(
       "job/3811P00000EFQiYQAX/",
-      {"state": "Closed"}.to_json,
+      {"state": "Closed"},
     ).returns([])
     @job.instance_variable_set(:@connection, connection)
 
