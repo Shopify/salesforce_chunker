@@ -20,12 +20,12 @@ module SalesforceChunker
       options = default_options.merge(options)
 
       logger = options[:logger] || Logger.new(options[:log_output])
-      tag = "[salesforce_chunker]"
+      logger.progname = "salesforce_chunker"
 
       raise StandardError, "No block given" unless block_given?
 
       start_time = Time.now.to_i
-      logger.info("#{tag} Initializing Query")
+      logger.info("Initializing Query")
       job = SalesforceChunker::PrimaryKeyChunkingQuery.new(
         connection: @connection,
         entity: entity,
@@ -36,11 +36,11 @@ module SalesforceChunker
       retrieved_batches = []
 
       loop do
-        logger.info("#{tag} Retrieving batch status information")
+        logger.info("Retrieving batch status information")
         job.get_completed_batches.each do |batch|
           next if retrieved_batches.include?(batch["id"])
 
-          logger.info("#{tag} Batch #{retrieved_batches.length + 1} of #{job.batches_count || '?'}: " \
+          logger.info("Batch #{retrieved_batches.length + 1} of #{job.batches_count || '?'}: " \
             "retrieving #{batch["numberRecordsProcessed"]} records")
           if batch["numberRecordsProcessed"] > 0
             job.get_batch_results(batch["id"]) do |result|
@@ -54,11 +54,11 @@ module SalesforceChunker
 
         raise TimeoutError, "Timeout during batch processing" if (Time.now.to_i - start_time) > options[:timeout_seconds]
 
-        logger.info("#{tag} Waiting #{options[:retry_seconds]} seconds")
+        logger.info("Waiting #{options[:retry_seconds]} seconds")
         sleep(options[:retry_seconds])
       end
 
-      logger.info("#{tag} Completed")
+      logger.info("Completed")
     end
   end
 end
