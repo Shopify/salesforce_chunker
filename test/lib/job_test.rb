@@ -179,4 +179,58 @@ class JobTest < Minitest::Test
     expected = [{"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3}]
     assert_equal expected, @job.get_completed_batches
   end
+
+  def test_raise_timeout_error_when_batch_completion_exceeds_timeout
+    @job.expects(:get_completed_batches).at_least_once.returns([])
+    @job.instance_variable_set(:@batches_count, 1)
+    @job.instance_variable_set(:@operation, "query")
+
+    assert_raises SalesforceChunker::TimeoutError do
+      @job.download_results(retry_seconds: 0, timeout_seconds: 0) do |result|
+        yield(result)
+      end
+    end
+  end
+
+  def test_download_results
+    first_completed_batches = [
+      {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3},
+    ]
+
+    second_completed_batches = [
+      {"id" => "55024000002iETTAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 1},
+      {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3},
+    ]
+
+    @job.expects(:get_completed_batches).twice.returns(first_completed_batches, second_completed_batches)
+
+    @job.expects(:get_batch_results).with("55024000002iETUAA2").multiple_yields(
+      [{"CustomColumn__c" => "abc"}],
+      [{"CustomColumn__c" => "def"}],
+      [{"CustomColumn__c" => "ghi"}],
+    )
+
+    @job.expects(:get_batch_results).with("55024000002iETTAA2").yields(
+      {"CustomColumn__c" => "jkl"},
+    )
+
+    @job.instance_variable_set(:@batches_count, 2)
+    @job.instance_variable_set(:@operation, "query")
+
+    actual_results = []
+    expected_results = [
+      {"CustomColumn__c" => "abc"},
+      {"CustomColumn__c" => "def"},
+      {"CustomColumn__c" => "ghi"},
+      {"CustomColumn__c" => "jkl"},
+    ]
+
+    @job.expects(:sleep).with(7).once
+
+    @job.download_results(retry_seconds: 7) do |result|
+      actual_results << result
+    end
+
+    assert_equal expected_results, actual_results
+  end
 end

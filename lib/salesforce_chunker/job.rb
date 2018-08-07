@@ -3,12 +3,46 @@ module SalesforceChunker
     attr_reader :batches_count
 
     QUERY_OPERATIONS = ["query", "queryall"].freeze
+    DEFAULT_RETRY_SECONDS = 10
+    DEFAULT_TIMEOUT_SECONDS = 3600
 
     def initialize(connection:, entity:, operation:, **options)
+      @log = options[:logger] || Logger.new(options[:log_output])
+      @log.progname = "salesforce_chunker"
+
       @connection = connection
       @operation = operation
       @batches_count = nil
+
+      @log.info "Creating Bulk API Job"
       @job_id = create_job(entity, options[:headers])
+    end
+
+    def download_results(**options)
+      return nil unless QUERY_OPERATIONS.include?(@operation)
+
+      retry_seconds = options[:retry_seconds] || DEFAULT_RETRY_SECONDS
+      timeout_at = Time.now.utc + (options[:timeout_seconds] || DEFAULT_TIMEOUT_SECONDS)
+      downloaded_batches = []
+
+      loop do
+        @log.info "Retrieving batch status information"
+        get_completed_batches.each do |batch|
+          next if downloaded_batches.include?(batch["id"])
+          @log.info "Batch #{downloaded_batches.length + 1} of #{@batches_count || '?'}: " \
+            "retrieving #{batch["numberRecordsProcessed"]} records"
+          get_batch_results(batch["id"]) { |result| yield(result) } if batch["numberRecordsProcessed"] > 0
+          downloaded_batches.append(batch["id"])
+        end
+
+        break if @batches_count && downloaded_batches.length == @batches_count
+        raise TimeoutError, "Timeout during batch processing" if Time.now.utc > timeout_at
+
+        @log.info "Waiting #{retry_seconds} seconds"
+        sleep(retry_seconds)
+      end
+      
+      @log.info "Completed"
     end
 
     def get_completed_batches
