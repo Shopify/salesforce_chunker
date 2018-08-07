@@ -15,24 +15,30 @@ module SalesforceChunker
     def query(query, entity, **options)
       raise StandardError, "No block given" unless block_given?
 
-      job = SalesforceChunker::PrimaryKeyChunkingQuery.new(
+      case options[:job_type]
+      when "single_batch"
+        job_class = SalesforceChunker::SingleBatchJob
+      when "primary_key_chunking", nil # for backwards compatibility
+        job_class = SalesforceChunker::PrimaryKeyChunkingQuery
+      end
+
+      job = job_class.new(
         connection: @connection,
         entity: entity,
         operation: "query",
         query: query,
-        batch_size: options[:batch_size],
-        logger: options[:logger],
-        log_output: options[:log_output],
+        **options.slice(:batch_size, :logger, :log_output)
       )
 
-      download_options = {
-        timeout: options[:timeout],
-        retry_seconds: options[:retry_seconds],
-      }
+      job.download_results(**options.slice(:timeout, :retry_seconds)) { |result| yield(result) }
+    end
 
-      job.download_results(**download_options) do |result|
-        yield(result)
-      end
+    def single_batch_query(query, entity, **options)
+      query(query, entity, **options.merge(job_type: "single_batch"))
+    end
+
+    def primary_key_chunking_query(query, entity, **options)
+      query(query, entity, **options.merge(job_type: "primary_key_chunking"))
     end
   end
 end
