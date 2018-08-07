@@ -11,7 +11,7 @@ class JobTest < Minitest::Test
 
   def test_initialize_creates_job
     SalesforceChunker::Job.any_instance.expects(:create_job)
-      .with("CustomObject__c", nil)
+      .with("CustomObject__c", {})
       .returns("3811P00000EFQiYQAZ")
 
     job = SalesforceChunker::Job.new(
