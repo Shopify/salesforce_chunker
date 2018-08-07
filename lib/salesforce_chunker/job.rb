@@ -15,7 +15,7 @@ module SalesforceChunker
       @batches_count = nil
 
       @log.info "Creating Bulk API Job"
-      @job_id = create_job(entity, options[:headers])
+      @job_id = create_job(entity, options[:headers].to_h)
     end
 
     def download_results(**options)
