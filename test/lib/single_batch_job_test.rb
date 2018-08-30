@@ -4,7 +4,7 @@ class SingleBatchJobTest < Minitest::Test
 
   def test_initialize_creates_job_and_batch_and_closes
     SalesforceChunker::SingleBatchJob.any_instance.expects(:create_job)
-      .with("Object", nil)
+      .with("Object", {})
       .returns("3811P00000EFQiYQAG")
 
     SalesforceChunker::SingleBatchJob.any_instance.expects(:create_batch)
