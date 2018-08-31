@@ -1,0 +1,60 @@
+#require "pry"
+
+module SalesforceChunker
+  class ManualChunkingQuery < Job
+
+    def initialize(connection:, entity:, operation:, query:, **options)
+      batch_size = options[:batch_size] || 10000
+      where_clause = self.class.query_where_clause(query)
+
+      super(connection: connection, entity: entity, operation: operation, **options)
+      @batches_count = 0
+
+      @log.info "Retrieving Ids from records"
+      breakpoints = id_breakpoints(entity, where_clause, batch_size)
+
+      @log.info "Creating Query Batches"
+      @batches_count = 0
+      create_batches(entity, query, breakpoints, where_clause)
+
+      close
+    end
+
+    def get_batch_statuses
+      batches = super
+      batches.delete_if { |batch| batch["id"] == @initial_batch_id && batches.count > 1 }
+    end
+
+    def create_batch(query)
+      @log.info "Creating Batch: #{query}"
+      super
+      @batches_count += 1
+    end
+
+    private
+
+    def id_breakpoints(entity, where_clause, batch_size)
+      @initial_batch_id = create_batch("Select Id From #{entity} #{where_clause} Order By Id Asc")
+      results = download_results(retry_seconds: 5)
+      results.with_index.select { |_, i| i % batch_size == 0 && i != 0 }.map { |result, _| result["Id"] }
+    end
+
+    def create_batches(entity, query, breakpoints, where_clause)
+      if breakpoints.empty?
+        create_batch(query)
+      else
+        query += where_clause.empty? ? " Where" : " And"
+
+        create_batch("#{query} Id < '#{breakpoints.first}'")
+        breakpoints.each_cons(2) do |first, second|
+          create_batch("#{query} Id >= '#{first}' And Id < '#{second}'")
+        end
+        create_batch("#{query} Id >= '#{breakpoints.last}'")
+      end
+    end
+
+    def self.query_where_clause(query)
+      query.partition(/where\s/i)[1..2].join
+    end
+  end
+end
