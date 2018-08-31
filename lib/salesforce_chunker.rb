@@ -1,4 +1,4 @@
-require "salesforce_chunker/base_62.rb"
+require "salesforce_chunker/base62.rb"
 require "salesforce_chunker/connection.rb"
 require "salesforce_chunker/exceptions.rb"
 require "salesforce_chunker/job.rb"
