@@ -1,8 +1,8 @@
 # SalesforceChunker
 
-The `salesforce_chunker` gem is a simple ruby library to query the Salesforce Bulk API and download the results one batch at a time in a memory effiecent manner using a `yield` statement. It uses [Primary Key Chunking](https://developer.salesforce.com/docs/atlas.en-us.api_asynch.meta/api_asynch/async_api_headers_enable_pk_chunking.htm) to split large queries into batches and downloads each batch separately.
+The `salesforce_chunker` gem is a ruby library for interacting with the Salesforce Bulk API. It was primarily designed as an extractor to handle queries using batching and [Primary Key Chunking](https://developer.salesforce.com/docs/atlas.en-us.api_asynch.meta/api_asynch/async_api_headers_enable_pk_chunking.htm). 
 
-Currently, only `query` is available.
+Currently, only querying is built into `SalesforceChunker::Client`, but non-query jobs can be created with `SalesforceChunker::Job`.
 
 ## Installation
 
@@ -22,7 +22,9 @@ Or install it yourself as:
 
 ## Usage
 
-### Simple Example
+### SalesforceChunker::Client
+
+#### Simple Example
 
 ```ruby
 client = SalesforceChunker::Client.new(
@@ -34,7 +36,7 @@ client = SalesforceChunker::Client.new(
 client.query("Select Name From Account", "Account") { |result| process(result) }
 ```
 
-### Initialize
+#### Initialize
 
 ```ruby
 client = SalesforceChunker::Client.new(
@@ -54,7 +56,15 @@ client = SalesforceChunker::Client.new(
 | domain | optional. defaults to `"login"`. |
 | salesforce_version | optional. defaults to `"42.0"`. Must be >= `"33.0"` to use PK Chunking. |
 
-### Query
+#### Functions
+
+| function | |
+| --- | --- |
+| query |
+| single_batch_query | calls `query(job_type: "single_batch", **options)`  |
+| primary_key_chunking_query | calls `query(job_type: "primary_key_chunking", **options)` |
+
+#### Query
 
 ```ruby
 query = "Select Name from Account" # required. SOQL query.
@@ -64,7 +74,8 @@ options = {
   retry_seconds:    10,               
   timeout_seconds:  3600,           
   logger:           nil,                     
-  log_output:       STDOUT,                 
+  log_output:       STDOUT,
+  job_type:         "primary_key_chunking",
 }
 
 client.query(query, entity, options) do |result|
@@ -74,11 +85,18 @@ end
 
 | Parameter | |
 | --- | --- |
-| batch_size | optional. defaults to `100000`. Number of records to process in a batch. |
+| batch_size | optional. defaults to `100000`. Number of records to process in a batch. (Only for PK Chunking) |
 | retry_seconds | optional. defaults to `10`. Number of seconds to wait before querying API for updated results. |
 | timeout_seconds | optional. defaults to `3600`. Number of seconds to wait before query is killed. |
 | logger | optional. logger to use. Must be instance of or similar to rails logger. |
 | log_output | optional. log output to use. i.e. `STDOUT`. |
+| job_type | optional. defaults to `"primary_key_chunking"`. Can also be set to `"single_batch"`. | 
+
+### Under the hood: SalesforceChunker::Job
+
+Using `SalesforceChunker::Job`, you have more direct access to the Salesforce Bulk API functions, such as `create_batch`, `get_batch_statuses`, and `retrieve_batch_results`. This can be used to perform custom tasks, such as upserts or multiple batch queries.
+
+This should be used in coordination with `SalesforceChunker::Connection`, which has the same initialization process as `SalesforceChunker::Client`.
 
 ## Development
 
