@@ -19,11 +19,7 @@ module SalesforceChunker
         body: self.class.login_soap_request_body(options[:username], options[:password], options[:security_token])
       ).parsed_response
 
-      begin
-        result = response["Envelope"]["Body"]["loginResponse"]["result"]
-      rescue NoMethodError
-        raise ConnectionError, response["Envelope"]["Body"]["Fault"]["faultstring"]
-      end
+      result = response["Envelope"]["Body"]["loginResponse"]["result"]
 
       @session_id = result["sessionId"]
       @instance = self.class.get_instance(result["serverUrl"])
@@ -34,6 +30,8 @@ module SalesforceChunker
         "X-SFDC-Session": @session_id,
         "Accept-Encoding": "gzip",
       }
+    rescue NoMethodError
+      raise ConnectionError, response["Envelope"]["Body"]["Fault"]["faultstring"]
     end
 
     def post_json(url, body, headers={})
