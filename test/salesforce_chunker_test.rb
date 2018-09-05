@@ -12,12 +12,6 @@ class SalesforceChunkerTest < Minitest::Test
     refute_nil ::SalesforceChunker::VERSION
   end
 
-  def test_raise_error_when_no_block_given_in_query
-    assert_raises StandardError do
-      @client.query("", "")
-    end
-  end
-
   def test_query
     job = mock()
     job.expects(:download_results).yields({"CustomColumn__c" => "abc"})
@@ -31,6 +25,23 @@ class SalesforceChunkerTest < Minitest::Test
 
     @client.query("", "", retry_seconds: 0) { |result| actual_results << result }
     assert_equal expected_results, actual_results
+  end
+
+  def test_query_as_enumerator
+    job = mock()
+    job.expects(:download_results).yields({"CustomColumn__c" => "abc"})
+
+    actual_results = []
+    expected_results = [
+      {"CustomColumn__c" => "abc"},
+    ]
+
+    SalesforceChunker::PrimaryKeyChunkingQuery.stubs(:new).returns(job)
+
+    actual_results = @client.query("", "", retry_seconds: 0)
+
+    assert_equal "Enumerator", actual_results.class.name
+    assert_equal expected_results, actual_results.to_a
   end
 
   def test_query_with_job_type_single_batch
