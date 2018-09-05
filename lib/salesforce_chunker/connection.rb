@@ -3,27 +3,19 @@ require "httparty"
 module SalesforceChunker
   class Connection
 
-    def initialize(options)
-      default_options = {
-        salesforce_version: "42.0",
-        domain: "login",
-        username: "",
-        password: "",
-        security_token: "",
-      }
-      options = default_options.merge(options)
+    def initialize(username: "", password: "", security_token: "", domain: "login", salesforce_version: "42.0")
 
       response = HTTParty.post(
-        "https://#{options[:domain]}.salesforce.com/services/Soap/u/#{options[:salesforce_version]}",
+        "https://#{domain}.salesforce.com/services/Soap/u/#{salesforce_version}",
         headers: { "SOAPAction": "login", "Content-Type": "text/xml; charset=UTF-8" },
-        body: self.class.login_soap_request_body(options[:username], options[:password], options[:security_token])
+        body: self.class.login_soap_request_body(username, password, security_token)
       ).parsed_response
 
       result = response["Envelope"]["Body"]["loginResponse"]["result"]
 
       instance = self.class.get_instance(result["serverUrl"])
 
-      @base_url = "https://#{instance}.salesforce.com/services/async/#{options[:salesforce_version]}/"
+      @base_url = "https://#{instance}.salesforce.com/services/async/#{salesforce_version}/"
       @default_headers = {
         "Content-Type": "application/json",
         "X-SFDC-Session": result["sessionId"],
