@@ -13,7 +13,7 @@ module SalesforceChunker
     end
 
     def query(query, entity, **options)
-      raise StandardError, "No block given" unless block_given?
+      return to_enum(:query, query, entity, **options) unless block_given?
 
       case options[:job_type]
       when "single_batch"
