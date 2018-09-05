@@ -21,13 +21,12 @@ module SalesforceChunker
 
       result = response["Envelope"]["Body"]["loginResponse"]["result"]
 
-      @session_id = result["sessionId"]
-      @instance = self.class.get_instance(result["serverUrl"])
+      instance = self.class.get_instance(result["serverUrl"])
 
-      @base_url = "https://#{@instance}.salesforce.com/services/async/#{options[:salesforce_version]}/"
+      @base_url = "https://#{instance}.salesforce.com/services/async/#{options[:salesforce_version]}/"
       @default_headers = {
         "Content-Type": "application/json",
-        "X-SFDC-Session": @session_id,
+        "X-SFDC-Session": result["sessionId"],
         "Accept-Encoding": "gzip",
       }
     rescue NoMethodError
