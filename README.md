@@ -92,6 +92,12 @@ end
 | log_output | optional. log output to use. i.e. `STDOUT`. |
 | job_type | optional. defaults to `"primary_key_chunking"`. Can also be set to `"single_batch"`. | 
 
+`query` can either be called with a block, or will return an enumerator:
+
+```ruby
+names = client.query(query, entity, options).map { |result| result["Name"] }
+```
+
 ### Under the hood: SalesforceChunker::Job
 
 Using `SalesforceChunker::Job`, you have more direct access to the Salesforce Bulk API functions, such as `create_batch`, `get_batch_statuses`, and `retrieve_batch_results`. This can be used to perform custom tasks, such as upserts or multiple batch queries.
