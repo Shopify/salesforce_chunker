@@ -20,6 +20,7 @@ module SalesforceChunker
 
     def download_results(**options)
       return nil unless QUERY_OPERATIONS.include?(@operation)
+      return to_enum(:download_results, **options) unless block_given?
 
       retry_seconds = options[:retry_seconds] || DEFAULT_RETRY_SECONDS
       timeout_at = Time.now.utc + (options[:timeout_seconds] || DEFAULT_TIMEOUT_SECONDS)
