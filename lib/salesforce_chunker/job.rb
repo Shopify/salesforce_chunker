@@ -63,11 +63,11 @@ module SalesforceChunker
       end
     end
 
-    def create_batch(data)
+    def create_batch(payload)
       if QUERY_OPERATIONS.include?(@operation)
-        @connection.post("job/#{@job_id}/batch", data.to_s)["id"]
+        @connection.post("job/#{@job_id}/batch", payload.to_s)["id"]
       else
-        @connection.post_json("job/#{@job_id}/batch", data)["id"]
+        @connection.post_json("job/#{@job_id}/batch", payload)["id"]
       end
     end
 
