@@ -8,8 +8,8 @@ require 'logger'
 module SalesforceChunker
   class Client
 
-    def initialize(options)
-      @connection = SalesforceChunker::Connection.new(options)
+    def initialize(**options)
+      @connection = SalesforceChunker::Connection.new(**options)
     end
 
     def query(query, entity, **options)
