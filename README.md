@@ -33,7 +33,7 @@ client = SalesforceChunker::Client.new(
   security_token: "security_token",
 )
 
-client.query("Select Name From Account", "Account") { |result| process(result) }
+names = client.query(query: "Select Name From User", object: "User").map { |result| result["Name"] }
 ```
 
 #### Initialize
@@ -67,30 +67,32 @@ client = SalesforceChunker::Client.new(
 #### Query
 
 ```ruby
-query = "Select Name from Account" # required. SOQL query.
-object = "Account"                 # required. Salesforce object type.
 options = {
-  batch_size:       100000,              
-  retry_seconds:    10,               
-  timeout_seconds:  3600,           
-  logger:           nil,                     
+  query:            "Select Name from Account",
+  object:           "Account",
+  batch_size:       100000,
+  retry_seconds:    10,
+  timeout_seconds:  3600,
+  logger:           nil,
   log_output:       STDOUT,
   job_type:         "primary_key_chunking",
 }
 
-client.query(query, object, options) do |result|
+client.query(options) do |result|
   process(result)
 end
 ```
 
-| Parameter | |
-| --- | --- |
-| batch_size | optional. defaults to `100000`. Number of records to process in a batch. (Only for PK Chunking) |
-| retry_seconds | optional. defaults to `10`. Number of seconds to wait before querying API for updated results. |
-| timeout_seconds | optional. defaults to `3600`. Number of seconds to wait before query is killed. |
-| logger | optional. logger to use. Must be instance of or similar to rails logger. |
-| log_output | optional. log output to use. i.e. `STDOUT`. |
-| job_type | optional. defaults to `"primary_key_chunking"`. Can also be set to `"single_batch"`. | 
+| Parameter | | |
+| --- | --- | --- |
+| query | required | SOQL query. |
+| object | required | Salesforce Object type. |
+| batch_size | optional | defaults to `100000`. Number of records to process in a batch. (Only for PK Chunking) |
+| retry_seconds | optional | defaults to `10`. Number of seconds to wait before querying API for updated results. |
+| timeout_seconds | optional | defaults to `3600`. Number of seconds to wait before query is killed. |
+| logger | optional | logger to use. Must be instance of or similar to rails logger. |
+| log_output | optional | log output to use. i.e. `STDOUT`. |
+| job_type | optional | defaults to `"primary_key_chunking"`. Can also be set to `"single_batch"`. |
 
 `query` can either be called with a block, or will return an enumerator:
 
