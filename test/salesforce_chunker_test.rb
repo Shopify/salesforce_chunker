@@ -46,12 +46,12 @@ class SalesforceChunkerTest < Minitest::Test
   end
 
   def test_single_batch_query
-    @client.expects(:query).with("q", "e", job_type: "single_batch")
-    @client.single_batch_query("q", "e") {}
+    @client.expects(:query).with("q", "o", job_type: "single_batch")
+    @client.single_batch_query("q", "o") {}
   end
 
   def test_primary_key_chunking_query
-    @client.expects(:query).with("q", "e", job_type: "primary_key_chunking")
-    @client.primary_key_chunking_query("q", "e") {}
+    @client.expects(:query).with("q", "o", job_type: "primary_key_chunking")
+    @client.primary_key_chunking_query("q", "o") {}
   end
 end

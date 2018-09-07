@@ -1,7 +1,7 @@
 module SalesforceChunker
   class PrimaryKeyChunkingQuery < Job
 
-    def initialize(connection:, entity:, operation:, query:, **options)
+    def initialize(connection:, object:, operation:, query:, **options)
       batch_size = options[:batch_size] || 100000
 
       if options[:headers].nil?
@@ -10,7 +10,7 @@ module SalesforceChunker
         options[:headers].reverse_merge!({"Sforce-Enable-PKChunking": "true; chunkSize=#{batch_size};" })
       end
 
-      super(connection: connection, entity: entity, operation: operation, **options)
+      super(connection: connection, object: object, operation: operation, **options)
       @log.info "Using Primary Key Chunking"
       @initial_batch_id = create_batch(query)
     end

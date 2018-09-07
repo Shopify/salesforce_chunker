@@ -15,7 +15,7 @@ class SingleBatchJobTest < Minitest::Test
 
     job = SalesforceChunker::SingleBatchJob.new(
       connection: "connect",
-      entity: "Object",
+      object: "Object",
       operation: "query",
       query: "Select Id from Object",
     )
@@ -40,7 +40,7 @@ class SingleBatchJobTest < Minitest::Test
 
     job = SalesforceChunker::SingleBatchJob.new(
       connection: "connect",
-      entity: "Object",
+      object: "Object",
       operation: "upsert",
       payload: [{"FirstName": "Foo", "LastName": "Bar"}],
     )

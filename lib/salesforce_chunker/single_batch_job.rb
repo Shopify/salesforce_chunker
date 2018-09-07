@@ -1,7 +1,7 @@
 module SalesforceChunker
   class SingleBatchJob < Job
-    def initialize(connection:, entity:, operation:, **options)
-      super(connection: connection, entity: entity, operation: operation, **options)
+    def initialize(connection:, object:, operation:, **options)
+      super(connection: connection, object: object, operation: operation, **options)
       payload = options[:payload] || options[:query]
       @log.info "Using Single Batch"
       @batch_id = create_batch(payload)
