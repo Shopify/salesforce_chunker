@@ -11,6 +11,7 @@ module SalesforceChunker
       end
 
       super(connection: connection, entity: entity, operation: operation, **options)
+      @log.info "Using Primary Key Chunking"
       @initial_batch_id = create_batch(query)
     end
 

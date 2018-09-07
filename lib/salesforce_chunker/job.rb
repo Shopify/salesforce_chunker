@@ -65,8 +65,10 @@ module SalesforceChunker
 
     def create_batch(payload)
       if QUERY_OPERATIONS.include?(@operation)
+        @log.info "Creating #{@operation.capitalize} Batch: \"#{payload.gsub(/\n/, " ").strip}\""
         @connection.post("job/#{@job_id}/batch", payload.to_s)["id"]
       else
+        @log.info "Creating #{@operation.capitalize} Batch"
         @connection.post_json("job/#{@job_id}/batch", payload)["id"]
       end
     end
