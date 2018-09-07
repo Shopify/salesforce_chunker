@@ -6,7 +6,7 @@ module SalesforceChunker
     DEFAULT_RETRY_SECONDS = 10
     DEFAULT_TIMEOUT_SECONDS = 3600
 
-    def initialize(connection:, entity:, operation:, **options)
+    def initialize(connection:, object:, operation:, **options)
       @log = options[:logger] || Logger.new(options[:log_output])
       @log.progname = "salesforce_chunker"
 
@@ -15,7 +15,7 @@ module SalesforceChunker
       @batches_count = nil
 
       @log.info "Creating Bulk API Job"
-      @job_id = create_job(entity, options[:headers].to_h)
+      @job_id = create_job(object, options[:headers].to_h)
     end
 
     def download_results(**options)
@@ -92,10 +92,10 @@ module SalesforceChunker
 
     private
 
-    def create_job(entity, headers = {})
+    def create_job(object, headers = {})
       body = {
         "operation": @operation,
-        "object": entity,
+        "object": object,
         "contentType": "JSON"
       }
       @connection.post_json("job", body, headers)["id"]

@@ -68,7 +68,7 @@ client = SalesforceChunker::Client.new(
 
 ```ruby
 query = "Select Name from Account" # required. SOQL query.
-entity = "Account"                 # required. Sobject type.
+object = "Account"                 # required. Salesforce object type.
 options = {
   batch_size:       100000,              
   retry_seconds:    10,               
@@ -78,7 +78,7 @@ options = {
   job_type:         "primary_key_chunking",
 }
 
-client.query(query, entity, options) do |result|
+client.query(query, object, options) do |result|
   process(result)
 end
 ```
@@ -95,7 +95,7 @@ end
 `query` can either be called with a block, or will return an enumerator:
 
 ```ruby
-names = client.query(query, entity, options).map { |result| result["Name"] }
+names = client.query(query, object, options).map { |result| result["Name"] }
 ```
 
 ### Under the hood: SalesforceChunker::Job

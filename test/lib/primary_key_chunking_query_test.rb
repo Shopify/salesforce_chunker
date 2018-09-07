@@ -5,7 +5,7 @@ class PrimaryKeyChunkingQueryTest < Minitest::Test
   def setup
     SalesforceChunker::PrimaryKeyChunkingQuery.any_instance.stubs(:create_job)
     SalesforceChunker::PrimaryKeyChunkingQuery.any_instance.stubs(:create_batch)
-    @job = SalesforceChunker::PrimaryKeyChunkingQuery.new(connection: nil, entity: nil, operation: nil, query: nil)
+    @job = SalesforceChunker::PrimaryKeyChunkingQuery.new(connection: nil, object: nil, operation: nil, query: nil)
     SalesforceChunker::PrimaryKeyChunkingQuery.any_instance.unstub(:create_job)
     SalesforceChunker::PrimaryKeyChunkingQuery.any_instance.unstub(:create_batch)
     @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
@@ -21,7 +21,7 @@ class PrimaryKeyChunkingQueryTest < Minitest::Test
 
     job = SalesforceChunker::PrimaryKeyChunkingQuery.new(
       connection: "connect",
-      entity: "CustomObject__c",
+      object: "CustomObject__c",
       operation: "query",
       query: "Select CustomColumn__c From CustomObject__c",
       batch_size: 4300,

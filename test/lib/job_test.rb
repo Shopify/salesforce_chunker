@@ -4,7 +4,7 @@ class JobTest < Minitest::Test
 
   def setup
     SalesforceChunker::Job.any_instance.stubs(:create_job)
-    @job = SalesforceChunker::Job.new(connection: nil, entity: nil, operation: nil)
+    @job = SalesforceChunker::Job.new(connection: nil, object: nil, operation: nil)
     SalesforceChunker::Job.any_instance.unstub(:create_job)
     @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
   end
@@ -16,7 +16,7 @@ class JobTest < Minitest::Test
 
     job = SalesforceChunker::Job.new(
       connection: "connect",
-      entity: "CustomObject__c",
+      object: "CustomObject__c",
       operation: "query",
       query: "Select CustomColumn__c From CustomObject__c",
     )
