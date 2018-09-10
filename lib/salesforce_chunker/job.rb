@@ -46,6 +46,20 @@ module SalesforceChunker
       @log.info "Completed"
     end
 
+    def wait_until_job_completed(**options)
+      return nil if QUERY_OPERATIONS.include?(@operation)
+
+      retry_seconds = options[:retry_seconds] || DEFAULT_RETRY_SECONDS
+
+      loop do
+        @logger.info "Retrieving batch status information"
+        batches = @job.get_completed_batches
+        @logger.info "#{batches.length} of #{@batches_count} batches complete"
+        break if batches.length == @batches_count
+        sleep(retry_seconds)
+      end
+    end
+
     def get_completed_batches
       get_batch_statuses.select do |batch|
         raise BatchError, "Batch failed: #{batch["stateMessage"]}" if batch["state"] == "Failed"
