@@ -1,5 +1,3 @@
-#require "pry"
-
 module SalesforceChunker
   class ManualChunkingQuery < Job
 
