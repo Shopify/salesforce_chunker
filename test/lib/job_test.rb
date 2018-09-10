@@ -70,14 +70,29 @@ class JobTest < Minitest::Test
     connection.expects(:post_json).with(
       "job",
       {"operation": "query", "object": "CustomObject__c", "contentType": "JSON"},
-      {"header": "blah"},
+      {"foo": "bar"},
     ).returns({
       "id" => "3811P00000EFQiYQAX"
     })
     @job.instance_variable_set(:@connection, connection)
     @job.instance_variable_set(:@operation, "query")
 
-    @job.send(:create_job, "CustomObject__c", {"header": "blah"})
+    @job.send(:create_job, "CustomObject__c", {"headers": {"foo": "bar"}})
+  end
+
+  def test_create_job_uses_external_id
+    connection = mock()
+    connection.expects(:post_json).with(
+      "job",
+      {"operation": "upsert", "object": "CustomObject__c", "contentType": "JSON", "externalIdFieldName": "Field__c"},
+      {},
+    ).returns({
+      "id" => "3811P00000EFQiYQAX"
+    })
+    @job.instance_variable_set(:@connection, connection)
+    @job.instance_variable_set(:@operation, "upsert")
+
+    @job.send(:create_job, "CustomObject__c", {"external_id": "Field__c"})
   end
 
   def test_create_batch_sends_query_as_string

@@ -13,7 +13,7 @@ class PrimaryKeyChunkingQueryTest < Minitest::Test
 
   def test_initialize_creates_job_and_batch
     SalesforceChunker::Job.any_instance.expects(:create_job)
-      .with("CustomObject__c", {"Sforce-Enable-PKChunking": "true; chunkSize=4300;"})
+      .with("CustomObject__c", { headers: { "Sforce-Enable-PKChunking": "true; chunkSize=4300;" }})
       .returns("3811P00000EFQiYQAZ")
     SalesforceChunker::Job.any_instance.expects(:create_batch)
       .with("Select CustomColumn__c From CustomObject__c")
