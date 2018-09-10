@@ -3,19 +3,17 @@
 module SalesforceChunker
   class ManualChunkingQuery < Job
 
-    def initialize(connection:, entity:, operation:, query:, **options)
+    def initialize(connection:, object:, operation:, query:, **options)
       batch_size = options[:batch_size] || 10000
       where_clause = self.class.query_where_clause(query)
 
-      super(connection: connection, entity: entity, operation: operation, **options)
-      @batches_count = 0
+      super(connection: connection, object: object, operation: operation, **options)
 
       @log.info "Retrieving Ids from records"
-      breakpoints = id_breakpoints(entity, where_clause, batch_size)
+      breakpoints = id_breakpoints(object, where_clause, batch_size)
 
       @log.info "Creating Query Batches"
-      @batches_count = 0
-      create_batches(entity, query, breakpoints, where_clause)
+      create_batches(query, breakpoints, where_clause)
 
       close
     end
@@ -25,21 +23,16 @@ module SalesforceChunker
       batches.delete_if { |batch| batch["id"] == @initial_batch_id && batches.count > 1 }
     end
 
-    def create_batch(query)
-      @log.info "Creating Batch: #{query}"
-      super
-      @batches_count += 1
-    end
-
     private
 
-    def id_breakpoints(entity, where_clause, batch_size)
-      @initial_batch_id = create_batch("Select Id From #{entity} #{where_clause} Order By Id Asc")
+    def id_breakpoints(object, where_clause, batch_size)
+      @batches_count = 1
+      @initial_batch_id = create_batch("Select Id From #{object} #{where_clause} Order By Id Asc")
       results = download_results(retry_seconds: 5)
       results.with_index.select { |_, i| i % batch_size == 0 && i != 0 }.map { |result, _| result["Id"] }
     end
 
-    def create_batches(entity, query, breakpoints, where_clause)
+    def create_batches(query, breakpoints, where_clause)
       if breakpoints.empty?
         create_batch(query)
       else
@@ -51,6 +44,7 @@ module SalesforceChunker
         end
         create_batch("#{query} Id >= '#{breakpoints.last}'")
       end
+      @batches_count = breakpoints.length + 1
     end
 
     def self.query_where_clause(query)
