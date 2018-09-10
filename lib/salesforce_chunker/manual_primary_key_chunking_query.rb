@@ -1,13 +1,13 @@
 module SalesforceChunker
   class ManualPrimaryKeyChunkingQuery < Job
 
-    def initialize(connection:, entity:, operation:, **options)
+    def initialize(connection:, object:, operation:, **options)
       batch_size = options[:batch_size] || 100000
       @batch_ids_to_ignore = []
 
-      super(connection: connection, entity: entity, operation: operation, **options)
+      super(connection: connection, object: object, operation: operation, **options)
 
-      pods = get_min_max_for_each_pod(entity)
+      pods = get_min_max_for_each_pod(object)
 
       pods.each do |pod|
         #@log.info pod[0]
@@ -53,7 +53,7 @@ module SalesforceChunker
 
       # @initial_batch_id = nil
 
-      # ids = get_all_ids(entity)
+      # ids = get_all_ids(object)
       # batches = split_ids_into_batches
 
       # batches.each do |batch|
@@ -70,7 +70,7 @@ module SalesforceChunker
 
     end
 
-    def get_min_max_for_each_pod(entity)
+    def get_min_max_for_each_pod(object)
       pod_min_maxes = []
 
       min_id = execute_query_and_get_single_result("Select Id From Account ORDER BY Id ASC LIMIT 1")
@@ -146,9 +146,9 @@ module SalesforceChunker
       batches.delete_if { |batch| @batch_ids_to_ignore.include?(batch["Id"]) }
     end
 
-    # def get_all_ids(entity)
+    # def get_all_ids(object)
     #   @log.info "Getting all ids"
-    #   query = "Select Id From #{entity} Order By Id Asc"
+    #   query = "Select Id From #{object} Order By Id Asc"
     #   @batches_count = 1
     #   initial_batch_id = create_batch(query)
     #   #ids = []
