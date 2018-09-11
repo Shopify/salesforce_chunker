@@ -15,7 +15,7 @@ module SalesforceChunker
       @batches_count = nil
 
       @log.info "Creating Bulk API Job"
-      @job_id = create_job(object, options[:headers].to_h)
+      @job_id = create_job(object, options.slice(:headers, :external_id))
     end
 
     def download_results(**options)
@@ -92,13 +92,14 @@ module SalesforceChunker
 
     private
 
-    def create_job(object, headers = {})
+    def create_job(object, options)
       body = {
         "operation": @operation,
         "object": object,
-        "contentType": "JSON"
+        "contentType": "JSON",
       }
-      @connection.post_json("job", body, headers)["id"]
+      body[:externalIdFieldName] = options[:external_id] if @operation == "upsert"
+      @connection.post_json("job", body, options[:headers].to_h)["id"]
     end
   end
 end
