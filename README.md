@@ -104,6 +104,51 @@ Using `SalesforceChunker::Job`, you have more direct access to the Salesforce Bu
 
 This should be used in coordination with `SalesforceChunker::Connection`, which has the same initialization process as `SalesforceChunker::Client`.
 
+```ruby
+connection = SalesforceChunker::Connection.new(
+  username: "username",
+  password: "password",
+  security_token: "security_token",
+)
+
+job = SalesforceChunker::Job.new(
+  connection: connection,
+  object: "Account",
+  operation: "query",
+  log_output: STDOUT,
+)
+
+job.create_batch("Select Id From Account Order By Id Desc Limit 1")
+job.create_batch("Select Id From Account Order By Id Asc Limit 1")
+job.close
+
+job.instance_variable_set(:@batches_count, 2)
+ids = job.download_results.to_a
+```
+
+Also, `SalesforceChunker::SingleBatchJob` can be used to create a Job with only a single batch. This automatically handles the batch creation, closing, and setting `@batches_count`.
+
+```ruby
+job = SalesforceChunker::SingleBatchJob.new(
+  connection: connection,
+  object: "Account",
+  operation: "upsert",
+  payload: [{ "Name" => "Random Account", "IdField__c" => "123456" }],
+  external_id: "IdField__c",
+  log_output: STDOUT,
+)
+
+loop do
+  batch = job.get_batch_statuses.first
+  if batch["state"] == "Completed"
+    break
+  elsif batch["state"] == "Failed"
+    raise "batch failed"
+  end
+  sleep 5
+end
+```
+
 ## Development
 
 After checking out the repo, 
