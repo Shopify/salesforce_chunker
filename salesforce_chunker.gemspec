@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Curtis Holmes"]
   spec.email         = ["curtis.holmes@shopify.com"]
 
-  spec.summary       = %q{Salesforce Bulk API Query Chunker Client}
-  spec.description   = %q{Asynchronous and memory efficient Salesforce query downloading scalable to millions of items}
+  spec.summary       = %q{Salesforce Bulk API Client}
+  spec.description   = %q{Salesforce client and extractor designed for handling large amounts of data}
   spec.homepage      = 'https://github.com/Shopify/salesforce_chunker'
   spec.license       = "MIT"
 
