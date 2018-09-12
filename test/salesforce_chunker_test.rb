@@ -4,7 +4,7 @@ class SalesforceChunkerTest < Minitest::Test
 
   def setup
     SalesforceChunker::Connection.stubs(:new)
-    @client = SalesforceChunker::Client.new({})
+    @client = SalesforceChunker::Client.new(query: "", object: "")
     SalesforceChunker::Connection.unstub(:new)
   end
 
@@ -18,7 +18,7 @@ class SalesforceChunkerTest < Minitest::Test
     SalesforceChunker::PrimaryKeyChunkingQuery.stubs(:new).returns(job)
 
     actual_results = []
-    @client.query("", "", retry_seconds: 0) { |result| actual_results << result }
+    @client.query(query: "", object: "", retry_seconds: 0) { |result| actual_results << result }
 
     assert_equal [{"CustomColumn__c" => "abc"}], actual_results
   end
@@ -28,7 +28,7 @@ class SalesforceChunkerTest < Minitest::Test
     job.expects(:download_results).yields({"CustomColumn__c" => "abc"})
     SalesforceChunker::PrimaryKeyChunkingQuery.stubs(:new).returns(job)
 
-    actual_results = @client.query("", "", retry_seconds: 0)
+    actual_results = @client.query(query: "", object: "", retry_seconds: 0)
 
     assert_equal "Enumerator", actual_results.class.name
     assert_equal [{"CustomColumn__c" => "abc"}], actual_results.to_a
@@ -40,18 +40,18 @@ class SalesforceChunkerTest < Minitest::Test
     SalesforceChunker::SingleBatchJob.stubs(:new).returns(job)
     
     actual_results = []
-    @client.query("", "", retry_seconds: 0, job_type: "single_batch") { |result| actual_results << result }
+    @client.query(query: "", object: "", retry_seconds: 0, job_type: "single_batch") { |result| actual_results << result }
 
     assert_equal [{"CustomColumn__c" => "abc"}], actual_results
   end
 
   def test_single_batch_query
-    @client.expects(:query).with("q", "o", job_type: "single_batch")
-    @client.single_batch_query("q", "o") {}
+    @client.expects(:query).with(query: "q", object: "o", job_type: "single_batch")
+    @client.single_batch_query(query: "q", object: "o") {}
   end
 
   def test_primary_key_chunking_query
-    @client.expects(:query).with("q", "o", job_type: "primary_key_chunking")
-    @client.primary_key_chunking_query("q", "o") {}
+    @client.expects(:query).with(query: "q", object: "o", job_type: "primary_key_chunking")
+    @client.primary_key_chunking_query(query: "q", object: "o") {}
   end
 end

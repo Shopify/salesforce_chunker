@@ -12,8 +12,8 @@ module SalesforceChunker
       @connection = SalesforceChunker::Connection.new(**options)
     end
 
-    def query(query, object, **options)
-      return to_enum(:query, query, object, **options) unless block_given?
+    def query(query:, object:, **options)
+      return to_enum(:query, query: query, object: object, **options) unless block_given?
 
       case options[:job_type]
       when "single_batch"
@@ -33,12 +33,12 @@ module SalesforceChunker
       job.download_results(**options.slice(:timeout, :retry_seconds)) { |result| yield(result) }
     end
 
-    def single_batch_query(query, object, **options)
-      query(query, object, **options.merge(job_type: "single_batch"))
+    def single_batch_query(**options)
+      query(**options.merge(job_type: "single_batch"))
     end
 
-    def primary_key_chunking_query(query, object, **options)
-      query(query, object, **options.merge(job_type: "primary_key_chunking"))
+    def primary_key_chunking_query(**options)
+      query(**options.merge(job_type: "primary_key_chunking"))
     end
   end
 end
