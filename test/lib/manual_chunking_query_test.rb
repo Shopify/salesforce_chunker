@@ -111,9 +111,14 @@ class ManualChunkingQueryTest < Minitest::Test
   end
 
   def test_where_clause_exists
+    query = "Select Id From CustomObject26__c Where SystemModStamp >= 2018-08-08T00:02:00Z"
+    where_clause = "Where SystemModStamp >= 2018-08-08T00:02:00Z"
+    assert_equal where_clause, SalesforceChunker::ManualChunkingQuery.query_where_clause(query)
   end
 
   def test_where_clause_empty
+    query = "Select Id From CustomObject63__c"
+    assert_empty SalesforceChunker::ManualChunkingQuery.query_where_clause(query)
   end
 
   # def test_create_batch_increments_batches_count
