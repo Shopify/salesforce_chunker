@@ -61,6 +61,12 @@ class ManualChunkingQueryTest < Minitest::Test
     assert_equal 1, @job.instance_variable_get(:@batches_count)
   end
 
+  def test_where_clause_exists
+  end
+
+  def test_where_clause_empty
+  end
+
   # def test_create_batch_increments_batches_count
   #   connection = mock()
   #   connection.expects(:post).with(
