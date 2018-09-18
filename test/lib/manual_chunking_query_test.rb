@@ -53,12 +53,61 @@ class ManualChunkingQueryTest < Minitest::Test
     @job.expects(:create_batch).with(
       "Select Id From CustomObject82__c Where SystemModStamp >= 2018-09-15T10:00:00Z Order By Id Asc"
     )
-    @job.stubs(:download_results).returns(Enumerator.new {})
+    @job.stubs(:download_results).returns([].to_enum)
 
 
     @job.breakpoints("CustomObject82__c", "Where SystemModStamp >= 2018-09-15T10:00:00Z", 3)
 
     assert_equal 1, @job.instance_variable_get(:@batches_count)
+  end
+
+  def test_breakpoints_empty_if_smaller_than_batch_size
+    @job.stubs(:create_batch)
+    @job.stubs(:download_results).returns([
+      {"Id" => "id0"},
+      {"Id" => "id1"},
+    ].to_enum)
+
+    assert_empty @job.breakpoints("", "", 3)
+  end
+
+  def test_breakpoints_empty_if_equal_to_batch_size
+    @job.stubs(:create_batch)
+    @job.stubs(:download_results).returns([
+      {"Id" => "id0"},
+      {"Id" => "id1"},
+      {"Id" => "id2"},
+    ].to_enum)
+
+    assert_empty @job.breakpoints("", "", 3)
+  end
+
+  def test_breakpoints_returns_one_point
+    @job.stubs(:create_batch)
+    @job.stubs(:download_results).returns([
+      {"Id" => "id0"},
+      {"Id" => "id1"},
+      {"Id" => "id2"},
+      {"Id" => "id3"},
+    ].to_enum)
+
+    assert_equal ["id3"], @job.breakpoints("", "", 3)
+  end
+
+  def test_breakpoints_returns_multiple_points
+    @job.stubs(:create_batch)
+    @job.stubs(:download_results).returns([
+      {"Id" => "id0"},
+      {"Id" => "id1"},
+      {"Id" => "id2"},
+      {"Id" => "id3"},
+      {"Id" => "id4"},
+      {"Id" => "id5"},
+      {"Id" => "id6"},
+      {"Id" => "id7"},
+    ].to_enum)
+
+    assert_equal ["id3", "id6"], @job.breakpoints("", "", 3)
   end
 
   def test_where_clause_exists
