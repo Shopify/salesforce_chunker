@@ -8,7 +8,7 @@ module SalesforceChunker
       super(connection: connection, object: object, operation: operation, **options)
 
       @log.info "Retrieving Ids from records"
-      breakpoints = id_breakpoints(object, where_clause, batch_size)
+      breakpoints = breakpoints(object, where_clause, batch_size)
 
       @log.info "Creating Query Batches"
       create_batches(query, breakpoints, where_clause)
@@ -23,11 +23,13 @@ module SalesforceChunker
 
     private
 
-    def id_breakpoints(object, where_clause, batch_size)
+    def breakpoints(object, where_clause, batch_size)
       @batches_count = 1
       @initial_batch_id = create_batch("Select Id From #{object} #{where_clause} Order By Id Asc")
-      results = download_results(retry_seconds: 5)
-      results.with_index.select { |_, i| i % batch_size == 0 && i != 0 }.map { |result, _| result["Id"] }
+      download_results(retry_seconds: 5) \
+        .with_index \
+        .select { |_, i| i % batch_size == 0 && i != 0 } \
+        .map { |result, _| result["Id"] }
     end
 
     def create_batches(query, breakpoints, where_clause)
