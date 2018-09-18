@@ -49,6 +49,18 @@ class ManualChunkingQueryTest < Minitest::Test
     assert_equal [another_batch], @job.get_batch_statuses
   end
 
+  def test_breakpoints_creates_batch_correctly_and_sets_batches_count
+    @job.expects(:create_batch).with(
+      "Select Id From CustomObject82__c Where SystemModStamp >= 2018-09-15T10:00:00Z Order By Id Asc"
+    )
+    @job.stubs(:download_results).returns(Enumerator.new {})
+
+
+    @job.breakpoints("CustomObject82__c", "Where SystemModStamp >= 2018-09-15T10:00:00Z", 3)
+
+    assert_equal 1, @job.instance_variable_get(:@batches_count)
+  end
+
   # def test_create_batch_increments_batches_count
   #   connection = mock()
   #   connection.expects(:post).with(

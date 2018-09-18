@@ -21,8 +21,6 @@ module SalesforceChunker
       batches.delete_if { |batch| batch["id"] == @initial_batch_id && batches.count > 1 }
     end
 
-    private
-
     def breakpoints(object, where_clause, batch_size)
       @batches_count = 1
       @initial_batch_id = create_batch("Select Id From #{object} #{where_clause} Order By Id Asc")
