@@ -121,6 +121,44 @@ class ManualChunkingQueryTest < Minitest::Test
     assert_empty SalesforceChunker::ManualChunkingQuery.query_where_clause(query)
   end
 
+  def test_create_batches_with_empty_breakpoints
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject19__c")
+    @job.create_batches("Select Id, Name From CustomObject19__c", [], "")
+    assert_equal 1, @job.instance_variable_get(:@batches_count)
+  end
+
+  def test_create_batches_with_one_breakpoint
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject95__c Where Id < 'id55'").once
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject95__c Where Id >= 'id55'").once
+
+    @job.create_batches("Select Id, Name From CustomObject95__c", ["id55"], "")
+
+    assert_equal 2, @job.instance_variable_get(:@batches_count)
+  end
+
+  def test_create_batches_with_multiple_breakpoints
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject43__c Where Id < 'id23'").once
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject43__c Where Id >= 'id23' And Id < 'id59'").once
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject43__c Where Id >= 'id59' And Id < 'id83'").once
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject43__c Where Id >= 'id83'").once
+
+    @job.create_batches("Select Id, Name From CustomObject43__c", ["id23", "id59", "id83"], "")
+
+    assert_equal 4, @job.instance_variable_get(:@batches_count)
+  end
+
+  def test_create_batches_with_multiple_breakpoints_and_where_clause
+    query = "Select Id, Name From CustomObject43__c Where SystemModStamp >= 2018-09-11T00:00:00Z"
+    where_clause = "Where SystemModStamp >= 2018-09-11T00:00:00Z"
+
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject43__c Where SystemModStamp >= 2018-09-11T00:00:00Z And Id < 'id23'").once
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject43__c Where SystemModStamp >= 2018-09-11T00:00:00Z And Id >= 'id23' And Id < 'id59'").once
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject43__c Where SystemModStamp >= 2018-09-11T00:00:00Z And Id >= 'id59' And Id < 'id83'").once
+    @job.expects(:create_batch).with("Select Id, Name From CustomObject43__c Where SystemModStamp >= 2018-09-11T00:00:00Z And Id >= 'id83'").once
+
+    @job.create_batches(query, ["id23", "id59", "id83"], where_clause)
+  end
+
 
 
   # def test_initialize_creates_job_and_batch
