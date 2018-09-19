@@ -160,33 +160,33 @@ class ManualChunkingQueryTest < Minitest::Test
   end
 
 
+  def test_initialize_creates_job_and_batches
+    SalesforceChunker::Job.any_instance.expects(:create_job)
+      .with("CustomObject__c", {})
+      .returns("3811P00000EFQiYQAZ")
 
-  # def test_initialize_creates_job_and_batch
+    SalesforceChunker::ManualChunkingQuery.any_instance.expects(:breakpoints)
+      .with("CustomObject__c", "Where SystemModStamp >= 2018-09-12T00:00:00Z", 8600)
+      .returns(["id_123"])
 
-  #   # create_job
+    SalesforceChunker::ManualChunkingQuery.any_instance.expects(:create_batches).with(
+      "Select CustomColumn__c From CustomObject__c Where SystemModStamp >= 2018-09-12T00:00:00Z",
+      ["id_123"],
+      "Where SystemModStamp >= 2018-09-12T00:00:00Z",
+    )
 
-  #   # stub others
+    SalesforceChunker::ManualChunkingQuery.any_instance.expects(:close)
 
-    
+    job = SalesforceChunker::ManualChunkingQuery.new(
+      connection: "connect",
+      object: "CustomObject__c",
+      operation: "query",
+      query: "Select CustomColumn__c From CustomObject__c Where SystemModStamp >= 2018-09-12T00:00:00Z",
+      batch_size: 8600,
+    )
 
-  #   SalesforceChunker::Job.any_instance.expects(:create_job)
-
-  #   SalesforceChunker::Job.any_instance.expects(:create_batch)
-  #     .with("Select CustomColumn__c From CustomObject__c")
-  #     .returns("55024000002iETSAA2")
-
-  #   job = SalesforceChunker::PrimaryKeyChunkingQuery.new(
-  #     connection: "connect",
-  #     object: "CustomObject__c",
-  #     operation: "query",
-  #     query: "Select CustomColumn__c From CustomObject__c",
-  #     batch_size: 4300,
-  #   )
-
-  #   assert_equal "connect", job.instance_variable_get(:@connection)
-  #   assert_equal "query", job.instance_variable_get(:@operation)
-  #   assert_equal "55024000002iETSAA2", job.instance_variable_get(:@initial_batch_id)
-  #   assert_equal "3811P00000EFQiYQAZ", job.instance_variable_get(:@job_id)
-  #end
-
+    assert_equal "connect", job.instance_variable_get(:@connection)
+    assert_equal "query", job.instance_variable_get(:@operation)
+    assert_equal "3811P00000EFQiYQAZ", job.instance_variable_get(:@job_id)
+  end
 end
