@@ -5,6 +5,7 @@ module SalesforceChunker
       batch_size = options[:batch_size] || 10000
       where_clause = self.class.query_where_clause(query)
 
+      @log.info "Using Manual Chunking"
       super(connection: connection, object: object, operation: operation, **options)
 
       @log.info "Retrieving Ids from records"
