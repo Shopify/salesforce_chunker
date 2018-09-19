@@ -28,7 +28,7 @@ module SalesforceChunker
       download_results(retry_seconds: 5)
         .with_index
         .select { |_, i| i % batch_size == 0 && i != 0 }
-        .map { |result, _| result["Id"]
+        .map { |result, _| result["Id"] }
     end
 
     def create_batches(query, breakpoints, where_clause)
