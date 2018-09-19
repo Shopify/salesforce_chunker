@@ -121,32 +121,7 @@ class ManualChunkingQueryTest < Minitest::Test
     assert_empty SalesforceChunker::ManualChunkingQuery.query_where_clause(query)
   end
 
-  # def test_create_batch_increments_batches_count
-  #   connection = mock()
-  #   connection.expects(:post).with(
-  #     "job/3811P00000EFQiYQAX/batch", 
-  #     "Select CustomColumn__c From CustomObject__c",
-  #   ).returns({
-  #     "id" => "55024000002iETSAA2"
-  #   })
-  #   @job.instance_variable_set(:@connection, connection)
 
-  #   @job.create_batch("Select CustomColumn__c From CustomObject__c")
-  #   assert_equal 1,  @job.instance_variable_get(:@batches_count)
-  # end
-
- # def test_id_breakpoints_one
-
-
-  #  @job.breakpoints("Select CustomColumn__c From CustomObject__c")
-  #end
-
-  #def test_get_batch_statuses_skips_initial_batch
-
-
-
-
-  #end
 
   # def test_initialize_creates_job_and_batch
 
