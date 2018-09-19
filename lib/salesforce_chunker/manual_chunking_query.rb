@@ -25,10 +25,10 @@ module SalesforceChunker
       @batches_count = 1
       @initial_batch_id = create_batch("Select Id From #{object} #{where_clause} Order By Id Asc")
 
-      download_results(retry_seconds: 5) \
-        .with_index \
-        .select { |_, i| i % batch_size == 0 && i != 0 } \
-        .map { |result, _| result["Id"] }
+      download_results(retry_seconds: 5)
+        .with_index
+        .select { |_, i| i % batch_size == 0 && i != 0 }
+        .map { |result, _| result["Id"]
     end
 
     def create_batches(query, breakpoints, where_clause)
