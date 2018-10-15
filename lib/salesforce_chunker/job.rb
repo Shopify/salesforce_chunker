@@ -82,6 +82,7 @@ module SalesforceChunker
     end
 
     def retrieve_results(batch_id, result_id)
+      @log.info "Retrieving results page: job/#{@job_id}/batch/#{batch_id}/result/#{result_id}"
       @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
     end
 
