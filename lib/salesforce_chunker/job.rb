@@ -66,28 +66,28 @@ module SalesforceChunker
     def create_batch(payload)
       if QUERY_OPERATIONS.include?(@operation)
         @log.info "Creating #{@operation.capitalize} Batch: \"#{payload.gsub(/\n/, " ").strip}\""
-        @connection.post("job/#{@job_id}/batch", payload.to_s)["id"]
+        @connection.post("/job/#{@job_id}/batch", payload.to_s, @log)["id"]
       else
         @log.info "Creating #{@operation.capitalize} Batch"
-        @connection.post_json("job/#{@job_id}/batch", payload)["id"]
+        @connection.post_json("/job/#{@job_id}/batch", payload, @log)["id"]
       end
     end
 
     def get_batch_statuses
-      @connection.get_json("job/#{@job_id}/batch")["batchInfo"]
+      @connection.get_json("/job/#{@job_id}/batch", @log)["batchInfo"]
     end
 
     def retrieve_batch_results(batch_id)
-      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result")
+      @connection.get_json("/job/#{@job_id}/batch/#{batch_id}/result", @log)
     end
 
     def retrieve_results(batch_id, result_id)
-      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
+      @connection.get_json("/job/#{@job_id}/batch/#{batch_id}/result/#{result_id}", @log)
     end
 
     def close
       body = {"state": "Closed"}
-      @connection.post_json("job/#{@job_id}/", body)
+      @connection.post_json("/job/#{@job_id}/", body, @log)
     end
 
     private
@@ -99,7 +99,7 @@ module SalesforceChunker
         "contentType": "JSON",
       }
       body[:externalIdFieldName] = options[:external_id] if @operation == "upsert"
-      @connection.post_json("job", body, options[:headers].to_h)["id"]
+      @connection.post_json("/job", body, @log, options[:headers].to_h,)["id"]
     end
   end
 end

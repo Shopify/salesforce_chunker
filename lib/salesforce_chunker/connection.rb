@@ -15,7 +15,7 @@ module SalesforceChunker
 
       instance = self.class.get_instance(result["serverUrl"])
 
-      @base_url = "https://#{instance}.salesforce.com/services/async/#{salesforce_version}/"
+      @base_url = "https://#{instance}.salesforce.com/services/async/#{salesforce_version}"
       @default_headers = {
         "Content-Type": "application/json",
         "X-SFDC-Session": result["sessionId"],
@@ -25,16 +25,18 @@ module SalesforceChunker
       raise ConnectionError, response["Envelope"]["Body"]["Fault"]["faultstring"]
     end
 
-    def post_json(url, body, headers={})
-      post(url, body.to_json, headers)
+    def post_json(url, body, log, headers={})
+      post(url, body.to_json, log, headers)
     end
 
-    def post(url, body, headers={})
+    def post(url, body, log, headers={})
+      log.info "POST: #{url}"
       response = HTTParty.post(@base_url + url, headers: @default_headers.merge(headers), body: body)
       self.class.check_response_error(response.parsed_response)
     end
 
-    def get_json(url, headers={})
+    def get_json(url, log, headers={})
+      log.info "GET: #{url}"
       response = HTTParty.get(@base_url + url, headers: @default_headers.merge(headers))
       self.class.check_response_error(response.parsed_response)
     end
