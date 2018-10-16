@@ -1,5 +1,4 @@
 require "httparty"
-require "pry"
 
 module SalesforceChunker
   class Connection
@@ -32,13 +31,11 @@ module SalesforceChunker
 
     def post(url, body, headers={})
       response = HTTParty.post(@base_url + url, headers: @default_headers.merge(headers), body: body)
-      # binding.pry
       self.class.check_response_error(response.parsed_response)
     end
 
     def get_json(url, headers={})
       response = HTTParty.get(@base_url + url, headers: headers.merge(@default_headers))
-      #binding.pry
       self.class.check_response_error(response.parsed_response)
     end
 
@@ -48,7 +45,6 @@ module SalesforceChunker
 
       #check for errors?
       response.body
-      #binding.pry
     end
 
     private

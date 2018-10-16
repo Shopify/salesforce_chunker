@@ -57,13 +57,7 @@ module SalesforceChunker
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
         raw_csv_string = retrieve_results(batch_id, result_id)
-
-        # headers = []
-
-        #binding.pry
-
         lines = raw_csv_string.each_line
-
         headers = CSV.parse(lines.next)[0]
 
         loop do
@@ -72,42 +66,14 @@ module SalesforceChunker
         rescue StopIteration
           break
         end
-
-
-
-
-        # lines = raw_csv_string.each_line
-
-        # binding.pry
-
-        # headers = CSV.parse(lines.first)[0]
-
-        # lines.each_entry do |line|
-
-        #   #binding.pry
-        #   csv = CSV.parse(line)[0]
-        #   yield(headers.zip(csv).to_h)
-          
-        #   #if headers.empty?
-        #   #  headers = csv
-        #   #else
-            
-        #   #end
-        # end
-        # binding.pry
-        # r.each do |result|
-        #  result.tap { |h| h.delete("attributes") }
-        #   yield(result)
-        # end
       end
     end
 
     def create_batch(payload)
       if QUERY_OPERATIONS.include?(@operation)
         @log.info "Creating #{@operation.capitalize} Batch: \"#{payload.gsub(/\n/, " ").strip}\""
-        r = @connection.post("job/#{@job_id}/batch", payload.to_s, {"Content-Type": "text/csv"})
-        #binding.pry
-        r["id"] || r["batchInfo"]["id"]
+        response = @connection.post("job/#{@job_id}/batch", payload.to_s, {"Content-Type": "text/csv"})
+        response["id"] || response["batchInfo"]["id"]
       else
         @log.info "Creating #{@operation.capitalize} Batch"
         @connection.post_json("job/#{@job_id}/batch", payload)["id"]
@@ -123,9 +89,8 @@ module SalesforceChunker
     def retrieve_batch_results(batch_id)
       @log.info "GET job/#{@job_id}/batch/#{batch_id}/result"
       batch_results = @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result")
-
+      # wrong if JSON?
       [batch_results["result_list"]["result"]] || batch_results["result_list"].map { |r| r["result"] }
-      # wrong if csv/xml
     end
 
     def retrieve_results(batch_id, result_id)
