@@ -83,7 +83,14 @@ module SalesforceChunker
     def get_batch_statuses
       @log.info "GET job/#{@job_id}/batch/"
       batch_statuses = @connection.get_json("job/#{@job_id}/batch")
-      batch_statuses["batchInfo"] || batch_statuses["batchInfoList"]["batchInfo"]
+
+      if batch_statuses["batchInfo"]
+        return batch_statuses["batchInfo"]
+      elsif batch_statuses["batchInfoList"]["batchInfo"].is_a?(Array)
+        return batch_statuses["batchInfoList"]["batchInfo"]
+      else
+        return [batch_statuses["batchInfoList"]["batchInfo"]]
+      end
     end
 
     def retrieve_batch_results(batch_id)
