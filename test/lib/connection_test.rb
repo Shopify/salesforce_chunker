@@ -95,6 +95,15 @@ class ConnectionTest < Minitest::Test
     end
   end
 
+  def test_handle_response_parsing_json
+    assert_equal 1234, @connection.class.handle_response_parsing("GET", "foo", json_response)
+  end
+
+  def test_handle_response_parsing_xml
+    SalesforceChunker::XMLToJSONPatch.expects(:apply).with("GET", "foo", "random_xml").returns(5678)
+    assert_equal 5678, @connection.class.handle_response_parsing("GET", "foo", xml_response)
+  end
+
   private
 
   def login_response
@@ -137,7 +146,15 @@ class ConnectionTest < Minitest::Test
 
   def json_response
     parsed_response = mock()
+    parsed_response.stubs(:content_type).returns("application/json")
     parsed_response.stubs(:parsed_response).returns(1234)
     parsed_response
+  end
+
+  def xml_response
+    response = mock()
+    response.stubs(:content_type).returns("application/xml")
+    response.stubs(:parsed_response).returns("random_xml")
+    response
   end
 end
