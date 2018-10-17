@@ -58,6 +58,19 @@ class ConnectionTest < Minitest::Test
     assert_equal 1234, response
   end
 
+  def test_headers_can_be_overridden
+    expected_url = "https://na99.salesforce.com/services/async/42.0/getroute"
+    expected_headers = {
+      "Content-Type": "text/csv",
+      "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
+      "Accept-Encoding": "gzip",
+      "Foo": "bar",
+    }
+    HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
+
+    response = @connection.get_json("getroute", {"Content-Type": "text/csv", "Foo": "bar"})
+  end
+
   def test_get_instance_extracts_instance
     urls = [
       "https://na99.salesforce.com/something",

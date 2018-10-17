@@ -30,13 +30,13 @@ module SalesforceChunker
     end
 
     def post(url, body, headers={})
-      response = HTTParty.post(@base_url + url, headers: headers.merge(@default_headers), body: body).parsed_response
-      self.class.check_response_error(response)
+      response = HTTParty.post(@base_url + url, headers: @default_headers.merge(headers), body: body)
+      self.class.check_response_error(response.parsed_response)
     end
 
     def get_json(url, headers={})
-      response = HTTParty.get(@base_url + url, headers: headers.merge(@default_headers)).parsed_response
-      self.class.check_response_error(response)
+      response = HTTParty.get(@base_url + url, headers: @default_headers.merge(headers))
+      self.class.check_response_error(response.parsed_response)
     end
 
     private
