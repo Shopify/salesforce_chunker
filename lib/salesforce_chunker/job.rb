@@ -32,7 +32,7 @@ module SalesforceChunker
           next if downloaded_batches.include?(batch["id"])
           @log.info "Batch #{downloaded_batches.length + 1} of #{@batches_count || '?'}: " \
             "retrieving #{batch["numberRecordsProcessed"]} records"
-          get_batch_results(batch["id"]) { |result| yield(result) } if batch["numberRecordsProcessed"] > 0
+          get_batch_results(batch["id"]) { |result| yield(result) } if batch["numberRecordsProcessed"].to_i > 0
           downloaded_batches.append(batch["id"])
         end
 
@@ -49,7 +49,7 @@ module SalesforceChunker
     def get_completed_batches
       get_batch_statuses.select do |batch|
         raise BatchError, "Batch failed: #{batch["stateMessage"]}" if batch["state"] == "Failed"
-        raise RecordError, "Failed records in batch" if batch["state"] == "Completed" && batch["numberRecordsFailed"] > 0
+        raise RecordError, "Failed records in batch" if batch["state"] == "Completed" && batch["numberRecordsFailed"].to_i > 0
         batch["state"] == "Completed"
       end
     end
