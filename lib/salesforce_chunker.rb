@@ -3,6 +3,7 @@ require "salesforce_chunker/exceptions.rb"
 require "salesforce_chunker/job.rb"
 require "salesforce_chunker/single_batch_job.rb"
 require "salesforce_chunker/primary_key_chunking_query.rb"
+require "salesforce_chunker/xml_to_json_patch.rb"
 require 'logger'
 
 module SalesforceChunker

@@ -34,13 +34,15 @@ module SalesforceChunker
     def post(url, body, headers={})
       @log.info "POST: #{url}"
       response = HTTParty.post(@base_url + url, headers: @default_headers.merge(headers), body: body)
-      self.class.check_response_error(response.parsed_response)
+      parsed_response = self.class.handle_response_parsing("post", url, response)
+      self.class.check_response_error(parsed_response)
     end
 
     def get_json(url, headers={})
       @log.info "GET: #{url}"
       response = HTTParty.get(@base_url + url, headers: @default_headers.merge(headers))
-      self.class.check_response_error(response.parsed_response)
+      parsed_response = self.class.handle_response_parsing("get", url, response)
+      self.class.check_response_error(parsed_response)
     end
 
     private
@@ -63,6 +65,14 @@ module SalesforceChunker
 
     def self.get_instance(server_url)
       /https:\/\/(.*).salesforce.com/.match(server_url)[1]
+    end
+
+    def self.handle_response_parsing(type, url, response)
+      if response.content_type == "application/xml"
+        SalesforceChunker::XMLToJSONPatch.apply(type, url, response.parsed_response)
+      else
+        response.parsed_response
+      end
     end
 
     def self.check_response_error(response)
