@@ -37,7 +37,7 @@ class PrimaryKeyChunkingQueryTest < Minitest::Test
   def test_get_batch_status_calls_finalize_chunking_setup_when_batches_count_is_nil
     connection = mock()
     connection.expects(:get_json).with(
-      "job/3811P00000EFQiYQAX/batch",
+      "/job/3811P00000EFQiYQAX/batch",
     ).returns({"batchInfo" => [
       {"id"=> "55024000002iETSAA2", "state"=> "Completed"},
       {"id"=> "55024000002iETTAA2", "state"=> "InProgress"},
@@ -52,7 +52,7 @@ class PrimaryKeyChunkingQueryTest < Minitest::Test
   def test_get_batch_status_doesnt_call_finalize_chunking_setup_when_batches_count_is_not_nil
     connection = mock()
     connection.expects(:get_json).with(
-      "job/3811P00000EFQiYQAX/batch",
+      "/job/3811P00000EFQiYQAX/batch",
     ).returns({"batchInfo" => [
       {"id"=> "55024000002iETSAA2", "state"=> "NotProcessed"},
       {"id"=> "55024000002iETTAA2", "state"=> "InProgress"},

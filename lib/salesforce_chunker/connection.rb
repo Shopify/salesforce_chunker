@@ -17,7 +17,7 @@ module SalesforceChunker
 
       instance = self.class.get_instance(result["serverUrl"])
 
-      @base_url = "https://#{instance}.salesforce.com/services/async/#{salesforce_version}/"
+      @base_url = "https://#{instance}.salesforce.com/services/async/#{salesforce_version}"
       @default_headers = {
         "Content-Type": "application/json",
         "X-SFDC-Session": result["sessionId"],

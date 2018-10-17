@@ -29,7 +29,7 @@ class JobTest < Minitest::Test
   def test_get_batch_statuses_returns_batches
     connection = mock()
     connection.expects(:get_json).with(
-      "job/3811P00000EFQiYQAX/batch",
+      "/job/3811P00000EFQiYQAX/batch",
     ).returns({"batchInfo" => [
       {"id"=> "55024000002iETSAA2", "state"=> "Completed"},
       {"id"=> "55024000002iETTAA2", "state"=> "InProgress"},
@@ -68,7 +68,7 @@ class JobTest < Minitest::Test
   def test_create_job_sends_request
     connection = mock()
     connection.expects(:post_json).with(
-      "job",
+      "/job",
       {"operation": "query", "object": "CustomObject__c", "contentType": "JSON"},
       {"foo": "bar"},
     ).returns({
@@ -83,7 +83,7 @@ class JobTest < Minitest::Test
   def test_create_job_uses_external_id
     connection = mock()
     connection.expects(:post_json).with(
-      "job",
+      "/job",
       {"operation": "upsert", "object": "CustomObject__c", "contentType": "JSON", "externalIdFieldName": "Field__c"},
       {},
     ).returns({
@@ -98,7 +98,7 @@ class JobTest < Minitest::Test
   def test_create_batch_sends_query_as_string
     connection = mock()
     connection.expects(:post).with(
-      "job/3811P00000EFQiYQAX/batch", 
+      "/job/3811P00000EFQiYQAX/batch", 
       "Select CustomColumn__c From CustomObject__c",
     ).returns({
       "id" => "55024000002iETSAA2"
@@ -112,7 +112,7 @@ class JobTest < Minitest::Test
   def test_create_batch_sends_json
     connection = mock()
     connection.expects(:post_json).with(
-      "job/3811P00000EFQiYQAX/batch",
+      "/job/3811P00000EFQiYQAX/batch",
       {"name": "bar.myshopify.com"},
     ).returns({
       "id" => "55024000002iETSAA3"
@@ -126,7 +126,7 @@ class JobTest < Minitest::Test
   def test_retrieve_batch_results_returns_information
     connection = mock()
     connection.expects(:get_json).with(
-      "job/3811P00000EFQiYQAX/batch/55024000002iETSAA2/result",
+      "/job/3811P00000EFQiYQAX/batch/55024000002iETSAA2/result",
     ).returns([
       "6502E000002iETSAA3",
       "6502E000002jETSAA3",
@@ -139,7 +139,7 @@ class JobTest < Minitest::Test
   def test_retrieve_results_returns_information
     connection = mock()
     connection.expects(:get_json).with(
-      "job/3811P00000EFQiYQAX/batch/55024000002iETSAA2/result/6502E000002iETSAA3",
+      "/job/3811P00000EFQiYQAX/batch/55024000002iETSAA2/result/6502E000002iETSAA3",
     ).returns([
       {CustomColumn__c: "abc"},
     ])
@@ -151,7 +151,7 @@ class JobTest < Minitest::Test
   def test_close_posts_json
     connection = mock()
     connection.expects(:post_json).with(
-      "job/3811P00000EFQiYQAX/",
+      "/job/3811P00000EFQiYQAX",
       {"state": "Closed"},
     ).returns([])
     @job.instance_variable_set(:@connection, connection)

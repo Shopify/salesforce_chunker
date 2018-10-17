@@ -42,7 +42,7 @@ class ConnectionTest < Minitest::Test
     }
     HTTParty.expects(:post).with(expected_url, body: "blah", headers: expected_headers).returns(json_response)
 
-    response = @connection.post("route", "blah")
+    response = @connection.post("/route", "blah")
     assert_equal 1234, response
   end
 
@@ -55,7 +55,7 @@ class ConnectionTest < Minitest::Test
     }
     HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
 
-    response = @connection.get_json("getroute")
+    response = @connection.get_json("/getroute")
     assert_equal 1234, response
   end
 
@@ -69,7 +69,7 @@ class ConnectionTest < Minitest::Test
     }
     HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
 
-    response = @connection.get_json("getroute", {"Content-Type": "text/csv", "Foo": "bar"})
+    response = @connection.get_json("/getroute", {"Content-Type": "text/csv", "Foo": "bar"})
   end
 
   def test_get_instance_extracts_instance
