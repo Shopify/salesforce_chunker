@@ -3,7 +3,9 @@ require "httparty"
 module SalesforceChunker
   class Connection
 
-    def initialize(username: "", password: "", security_token: "", domain: "login", salesforce_version: "42.0")
+    def initialize(username: "", password: "", security_token: "", domain: "login", salesforce_version: "42.0", **options)
+      @log = options[:logger] || Logger.new(options[:log_output])
+      @log.progname = "salesforce_chunker"
 
       response = HTTParty.post(
         "https://#{domain}.salesforce.com/services/Soap/u/#{salesforce_version}",
@@ -30,11 +32,13 @@ module SalesforceChunker
     end
 
     def post(url, body, headers={})
+      @log.info "POST: #{url}"
       response = HTTParty.post(@base_url + url, headers: @default_headers.merge(headers), body: body)
       self.class.check_response_error(response.parsed_response)
     end
 
     def get_json(url, headers={})
+      @log.info "GET: #{url}"
       response = HTTParty.get(@base_url + url, headers: @default_headers.merge(headers))
       self.class.check_response_error(response.parsed_response)
     end

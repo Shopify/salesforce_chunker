@@ -9,7 +9,10 @@ module SalesforceChunker
   class Client
 
     def initialize(**options)
-      @connection = SalesforceChunker::Connection.new(**options)
+      @log = options[:logger] || Logger.new(options[:log_output])
+      @log.progname = "salesforce_chunker"
+
+      @connection = SalesforceChunker::Connection.new(**options, logger: @log)
     end
 
     def query(query:, object:, **options)
@@ -22,14 +25,16 @@ module SalesforceChunker
         job_class = SalesforceChunker::PrimaryKeyChunkingQuery
       end
 
-      job = job_class.new(
+      job_params = {
         connection: @connection,
         object: object,
         operation: "query",
         query: query,
         **options.slice(:batch_size, :logger, :log_output)
-      )
+      }
+      job_params[:logger] = @log if job_params[:logger].nil? && job_params[:log_output].nil?
 
+      job = job_class.new(**job_params)
       job.download_results(**options.slice(:timeout, :retry_seconds)) { |result| yield(result) }
     end
 
