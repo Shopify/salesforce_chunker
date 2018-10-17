@@ -6,16 +6,23 @@ module SalesforceChunker
     DEFAULT_RETRY_SECONDS = 10
     DEFAULT_TIMEOUT_SECONDS = 3600
 
+    CONTENT_TYPE_HEADERS = {
+      csv: "text/csv",
+      json: "application/json",
+    }
+
     def initialize(connection:, object:, operation:, **options)
       @log = options[:logger] || Logger.new(options[:log_output])
       @log.progname = "salesforce_chunker"
+
+      @content_type = options[:format].symbolize || :json
 
       @connection = connection
       @operation = operation
       @batches_count = nil
 
       @log.info "Creating Bulk API Job"
-      @job_id = create_job(object, options.slice(:headers, :external_id))
+      @job_id = create_job(object, @download_format, options.slice(:headers, :external_id))
     end
 
     def download_results(**options)
@@ -64,7 +71,8 @@ module SalesforceChunker
     def create_batch(payload)
       if QUERY_OPERATIONS.include?(@operation)
         @log.info "Creating #{@operation.capitalize} Batch: \"#{payload.gsub(/\n/, " ").strip}\""
-        @connection.post("job/#{@job_id}/batch", payload.to_s)["id"]
+        response = @connection.post("job/#{@job_id}/batch", payload.to_s, {"Content-Type": CONTENT_TYPE_HEADERS[@content_type]})
+        response["id"] || response["batchInfo"]["id"]
       else
         @log.info "Creating #{@operation.capitalize} Batch"
         @connection.post_json("job/#{@job_id}/batch", payload)["id"]
@@ -94,7 +102,7 @@ module SalesforceChunker
       body = {
         "operation": @operation,
         "object": object,
-        "contentType": "JSON",
+        "contentType": @content_type.upcase.to_s,
       }
       body[:externalIdFieldName] = options[:external_id] if @operation == "upsert"
       @connection.post_json("job", body, options[:headers].to_h)["id"]
