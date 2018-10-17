@@ -56,10 +56,8 @@ module SalesforceChunker
 
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
-        retrieve_results(batch_id, result_id).each do |result|
-          result.tap { |h| h.delete("attributes") }
-          yield(result)
-        end
+        csv = retrieve_results(batch_id, result_id)
+        SalesforceChunker::CSVIncremental.parse(csv) { |result| yield(result) }
       end
     end
 
