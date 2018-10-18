@@ -5,49 +5,36 @@ module SalesforceChunker
 
     CHUNK_SIZE = 50
 
-    def parse(raw_csv_string)
-      return to_enum(:parse, raw_csv_string) unless block_given?
+    def parse(csv_string)
+      return to_enum(:parse, csv_string) unless block_given?
 
-      lines = raw_csv_string.each_line
-      headers = CSV.parse_line(lines.next) # will this work if there is a newline?
+      lines = csv_string.each_line
+      headers = CSV.parse_line(lines.next)
+
       continue = true
 
-      loop do
-        stream = ""
+      while continue
+        chunk = ""
 
         begin
-          CHUNK_SIZE.times { stream += lines.next }
+          CHUNK_SIZE.times { chunk += lines.next }
         rescue StopIteration
           continue = false
         end
 
-        stream.gsub!("\"\"", "")
+        chunk.gsub!("\"\"", "")
 
         begin
-          csv = CSV.parse(stream)
+          records = CSV.parse(chunk)
         rescue CSV::MalformedCSVError
-          nextline = lines.next
-          stream += nextline.gsub!("\"\"", "")
+          chunk += lines.next.gsub("\"\"", "")
           retry
         end
 
-        csv.each do |record|
+        records.each do |record|
           yield(headers.zip(record).to_h)
         end
-
-        break unless continue
       end
-    end
-
-    def blah_with_backoff(stream, lines)
-        begin
-          csv = CSV.parse(stream)
-        rescue CSV::MalformedCSVError
-          nextline = lines.next
-          stream += nextline.gsub!("\"\"", "")
-          retry
-        end
-
     end
   end
 end
