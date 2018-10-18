@@ -63,8 +63,15 @@ module SalesforceChunker
 
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
-        csv = retrieve_results(batch_id, result_id)
-        SalesforceChunker::CSVIncremental.parse(csv) { |result| yield(result) }
+        if @content_type == :json
+          retrieve_results(batch_id, result_id).parsed_response.each do |result|
+            result.tap { |h| h.delete("attributes") }
+            yield(result)
+          end
+        else
+          csv = retrieve_results(batch_id, result_id)
+          SalesforceChunker::CSVIncremental.parse(csv) { |result| yield(result) }
+        end
       end
     end
 
@@ -72,7 +79,7 @@ module SalesforceChunker
       if QUERY_OPERATIONS.include?(@operation)
         @log.info "Creating #{@operation.capitalize} Batch: \"#{payload.gsub(/\n/, " ").strip}\""
         response = @connection.post("job/#{@job_id}/batch", payload.to_s, {"Content-Type": CONTENT_TYPE_HEADERS[@content_type]})
-        response["id"] || response["batchInfo"]["id"]
+        response["id"]
       else
         @log.info "Creating #{@operation.capitalize} Batch"
         @connection.post_json("job/#{@job_id}/batch", payload)["id"]
@@ -88,7 +95,7 @@ module SalesforceChunker
     end
 
     def retrieve_results(batch_id, result_id)
-      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
+      @connection.get_raw("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
     end
 
     def close
