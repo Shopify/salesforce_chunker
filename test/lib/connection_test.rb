@@ -6,6 +6,7 @@ class ConnectionTest < Minitest::Test
   def setup
     HTTParty.stubs(:post).returns(login_response)
     @connection = SalesforceChunker::Connection.new({})
+    @connection.instance_variable_set(:@log, Logger.new(nil))
     HTTParty.unstub(:post)
   end
 
