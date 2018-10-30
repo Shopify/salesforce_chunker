@@ -56,7 +56,10 @@ module SalesforceChunker
 
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
-        retrieve_results(batch_id, result_id).each do |result|
+        results_body = retrieve_results(batch_id, result_id)
+        json_parser = SalesforceChunker::JsonParser.new
+
+        json_parser.parse(results_body) do |result|
           result.tap { |h| h.delete("attributes") }
           yield(result)
         end
@@ -82,7 +85,7 @@ module SalesforceChunker
     end
 
     def retrieve_results(batch_id, result_id)
-      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
+      @connection.get_body("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
     end
 
     def close

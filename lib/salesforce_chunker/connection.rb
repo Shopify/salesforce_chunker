@@ -43,6 +43,13 @@ module SalesforceChunker
       self.class.check_response_error(response.parsed_response)
     end
 
+    def get_body(url, headers={})
+      @log.info "GET: #{url}"
+      response = HTTParty.get(@base_url + url, headers: @default_headers.merge(headers))
+      # error handling ?
+      response.body
+    end
+
     private
 
     def self.login_soap_request_body(username, password, security_token)
