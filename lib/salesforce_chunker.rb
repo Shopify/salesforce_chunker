@@ -3,6 +3,7 @@ require "salesforce_chunker/exceptions.rb"
 require "salesforce_chunker/job.rb"
 require "salesforce_chunker/single_batch_job.rb"
 require "salesforce_chunker/primary_key_chunking_query.rb"
+require "salesforce_chunker/manual_chunking_query.rb"
 require 'logger'
 
 module SalesforceChunker
@@ -21,6 +22,8 @@ module SalesforceChunker
       case options[:job_type]
       when "single_batch"
         job_class = SalesforceChunker::SingleBatchJob
+      when "manual_chunking"
+        job_class = SalesforceChunker::ManualChunkingQuery
       when "primary_key_chunking", nil # for backwards compatibility
         job_class = SalesforceChunker::PrimaryKeyChunkingQuery
       end
@@ -44,6 +47,10 @@ module SalesforceChunker
 
     def primary_key_chunking_query(**options)
       query(**options.merge(job_type: "primary_key_chunking"))
+    end
+
+    def manual_chunking_query(**options)
+      query(**options.merge(job_type: "manual_chunking"))
     end
   end
 end
