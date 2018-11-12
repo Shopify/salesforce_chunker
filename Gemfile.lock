@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    salesforce_chunker (1.0.0)
+    salesforce_chunker (1.1.0)
       httparty (~> 0.13)
 
 GEM
@@ -27,10 +27,10 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.16)
   minitest (~> 5.0)
-  mocha (~> 1.5.0)
-  pry (~> 0.11.1)
+  mocha (~> 1.5)
+  pry (~> 0.11)
   rake (~> 10.0)
   salesforce_chunker!
 
 BUNDLED WITH
-   1.16.1
+   1.16.6
