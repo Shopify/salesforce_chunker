@@ -1,15 +1,17 @@
+require "pry"
+
 module SalesforceChunker
   class ManualChunkingBreakpointQuery < Job
 
     def initialize(connection:, object:, operation:, query:, **options)
+      @batch_size = options[:batch_size] || 1000
       super(connection: connection, object: object, operation: operation, **options)
 
       @log.info "Creating Breakpoint Query"
-      @batch_id = create_batch(options[:query])
+      @batch_id = create_batch(query)
       @batches_count = 1
       close
     end
-
 
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
@@ -17,19 +19,18 @@ module SalesforceChunker
 
         lines = results.each_line
         headers = lines.next
+        first_line = lines.next
 
         loop do
           begin
-            (batch_size-1).times do { lines.next }
+            (@batch_size-1).times { lines.next }
             yield(lines.next.chomp.gsub("\"", ""))
           rescue StopIteration
             break
           end
         end
       end
-
     end
-
 
     def create_batch(payload)
       @log.info "Creating Id Batch: \"#{payload.gsub(/\n/, " ").strip}\""
@@ -37,8 +38,9 @@ module SalesforceChunker
       response["batchInfo"]["id"]
     end
 
-    def retrieve_batch_results
-      response = super
+    def retrieve_batch_results(batch_id)
+      # XML to JSON wrangling
+      response = super(batch_id)
       if response["result_list"]["result"].is_a? Array
         response["result_list"]["result"]
       else
@@ -47,7 +49,10 @@ module SalesforceChunker
     end
 
     def get_batch_statuses
-      {"batchInfo" => [super["batchInfoList"]["batchInfo"]]}
+      # XML to JSON wrangling
+      #binding.pry
+      #super["batchInfoList"]
+      [@connection.get_json("job/#{@job_id}/batch")["batchInfoList"]["batchInfo"]]
     end
 
     def create_job(object, options)

@@ -1,4 +1,5 @@
 require 'json'
+require 'pry'
 
 module SalesforceChunker
   class Job
@@ -30,6 +31,7 @@ module SalesforceChunker
 
       loop do
         @log.info "Retrieving batch status information"
+        #binding.pry
         get_completed_batches.each do |batch|
           next if downloaded_batches.include?(batch["id"])
           @log.info "Batch #{downloaded_batches.length + 1} of #{@batches_count || '?'}: " \
