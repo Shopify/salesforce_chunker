@@ -9,7 +9,7 @@ module SalesforceChunker
       #@log.info "Using Manual Chunking"
       #@log.info "Retrieving Ids from records"
 
-      job = SalesforceChunker::SingleBatchJob.new(
+      job = SalesforceChunker::ManualChunkingBreakpointQuery.new(
         connection: connection,
         object: object,
         operation: operation,
@@ -17,16 +17,7 @@ module SalesforceChunker
         logger: options[:logger],
       )
 
-      breakpoints = []
-
-      job.download_results(retry_seconds: 10).with_index do |result, i|
-
-
-        
-        if i % batch_size == 0 && i != 0
-          breakpoints << result["Id"]
-        end
-      end
+      breakpoints = job.download_results(retry_seconds: 10).to_i
 
       super(connection: connection, object: object, operation: operation, **options)
 
