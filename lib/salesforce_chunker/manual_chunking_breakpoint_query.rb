@@ -9,8 +9,20 @@ module SalesforceChunker
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
         results = retrieve_results(batch_id, result_id)
-        # handle
+
+        lines = results.each_line
+        headers = lines.next
+
+        loop do
+          begin
+            (batch_size-1).times do { lines.next }
+            yield(lines.next.chomp.gsub("\"", ""))
+          rescue StopIteration
+            break
+          end
+        end
       end
+
     end
 
     def create_job(object, options)
