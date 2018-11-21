@@ -20,6 +20,9 @@ module SalesforceChunker
       breakpoints = []
 
       job.download_results(retry_seconds: 10).with_index do |result, i|
+
+
+        
         if i % batch_size == 0 && i != 0
           breakpoints << result["Id"]
         end
