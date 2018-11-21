@@ -6,14 +6,15 @@ module SalesforceChunker
       where_clause = self.class.query_where_clause(query)
       batch_size = options[:batch_size] || 100000
 
-      @log.info "Using Manual Chunking"
-      @log.info "Retrieving Ids from records"
+      #@log.info "Using Manual Chunking"
+      #@log.info "Retrieving Ids from records"
 
       job = SalesforceChunker::SingleBatchJob.new(
         connection: connection,
         object: object,
         operation: operation,
         query: "Select Id From #{object} #{where_clause} Order By Id Asc",
+        logger: options[:logger],
       )
 
       breakpoints = []
