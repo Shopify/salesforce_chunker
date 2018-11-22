@@ -96,7 +96,7 @@ module SalesforceChunker
       body = {
         "operation": @operation,
         "object": object,
-        "contentType": "JSON",
+        "contentType": options[:content_type] || "JSON",
       }
       body[:externalIdFieldName] = options[:external_id] if @operation == "upsert"
       @connection.post_json("job", body, options[:headers].to_h)["id"]
