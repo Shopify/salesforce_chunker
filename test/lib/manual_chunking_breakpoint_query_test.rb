@@ -47,6 +47,15 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
   end
 
   def test_retrieve_batch_results_single_response
+    SalesforceChunker::Job.any_instance.expects(:retrieve_batch_results).with("55024000002iETSAA2").returns({
+      "result_list" =>
+      {
+        "result" => "3811P00000EFQiaQAX"
+      }
+    })
 
+    expected = ["3811P00000EFQiaQAX", "3811P00000EFQibQAX", "3811P00000EFQicQAX"]
+
+    assert_equal expected, @job.retrieve_batch_results("55024000002iETSAA2")
   end
 end
