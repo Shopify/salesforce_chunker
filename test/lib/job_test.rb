@@ -93,6 +93,21 @@ class JobTest < Minitest::Test
     @job.send(:create_job, "CustomObject__c", {"external_id": "Field__c"})
   end
 
+  def test_create_job_allows_different_content_type
+    connection = mock()
+    connection.expects(:post_json).with(
+      "job",
+      {"operation": "query", "object": "CustomObject__c", "contentType": "CSV"},
+      {},
+    ).returns({
+      "id" => "3811P00000EFQiYQAX"
+    })
+    @job.instance_variable_set(:@connection, connection)
+    @job.instance_variable_set(:@operation, "query")
+
+    @job.send(:create_job, "CustomObject__c", {"content_type": "CSV"})
+  end
+
   def test_create_batch_sends_query_as_string
     connection = mock()
     connection.expects(:post).with(
