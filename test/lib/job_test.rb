@@ -44,14 +44,22 @@ class JobTest < Minitest::Test
       "6502E000002iETSAA3",
       "6502E000002jETSAA3",
     ])
-    @job.expects(:retrieve_results).with("55024000002iETSAA2", "6502E000002iETSAA3").returns([
-      {"CustomColumn__c" => "abc", "attributes" => "blah"},
-      {"CustomColumn__c" => "def", "attributes" => "blah"},
-    ])
-    @job.expects(:retrieve_results).with("55024000002iETSAA2", "6502E000002jETSAA3").returns([
-      {"CustomColumn__c" => "ghi", "attributes" => "blah"},
-      {"CustomColumn__c" => "jkl", "attributes" => "blah"},
-    ])
+    @job.expects(:retrieve_results).with("55024000002iETSAA2", "6502E000002iETSAA3").returns(
+      stub(
+        parsed_response: [
+          {"CustomColumn__c" => "abc", "attributes" => "blah"},
+          {"CustomColumn__c" => "def", "attributes" => "blah"},
+        ]
+      )
+    )
+    @job.expects(:retrieve_results).with("55024000002iETSAA2", "6502E000002jETSAA3").returns(
+      stub(
+        parsed_response: [
+          {"CustomColumn__c" => "ghi", "attributes" => "blah"},
+          {"CustomColumn__c" => "jkl", "attributes" => "blah"},
+        ]
+      )
+    )
 
     actual_results = []
     @job.get_batch_results("55024000002iETSAA2") { |result| actual_results.append(result) }
@@ -137,15 +145,15 @@ class JobTest < Minitest::Test
   end
 
   def test_retrieve_results_returns_information
+    response = stub(parsed_response: [{CustomColumn__c: "abc"}])
+
     connection = mock()
-    connection.expects(:get_json).with(
+    connection.expects(:get).with(
       "job/3811P00000EFQiYQAX/batch/55024000002iETSAA2/result/6502E000002iETSAA3",
-    ).returns([
-      {CustomColumn__c: "abc"},
-    ])
+    ).returns(response)
     @job.instance_variable_set(:@connection, connection)
 
-    assert_equal [{CustomColumn__c: "abc"}], @job.retrieve_results("55024000002iETSAA2", "6502E000002iETSAA3")
+    assert_equal [{CustomColumn__c: "abc"}], @job.retrieve_results("55024000002iETSAA2", "6502E000002iETSAA3").parsed_response
   end
 
   def test_close_posts_json
