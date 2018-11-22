@@ -43,7 +43,8 @@ class ConnectionTest < Minitest::Test
     HTTParty.expects(:post).with(expected_url, body: "blah", headers: expected_headers).returns(json_response)
 
     response = @connection.post("route", "blah")
-    assert_equal 1234, response
+    expected = {"a" => 2}
+    assert_equal expected, response
   end
 
   def test_get_json_calls_get_with_correct_parameters
@@ -56,7 +57,21 @@ class ConnectionTest < Minitest::Test
     HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
 
     response = @connection.get_json("getroute")
-    assert_equal 1234, response
+    expected = {"a" => 2}
+    assert_equal expected, response
+  end
+
+  def test_get_returns_response_object
+    expected_url = "https://na99.salesforce.com/services/async/42.0/getroute"
+    expected_headers = {
+      "Content-Type": "application/json",
+      "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
+      "Accept-Encoding": "gzip",
+    }
+    HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
+
+    response = @connection.get("getroute")
+    assert_equal "{\"a\":2}", response
   end
 
   def test_headers_can_be_overridden
@@ -136,8 +151,6 @@ class ConnectionTest < Minitest::Test
   end
 
   def json_response
-    parsed_response = mock()
-    parsed_response.stubs(:parsed_response).returns(1234)
-    parsed_response
+    stub(parsed_response: {"a" => 2}, body: "{\"a\":2}")
   end
 end
