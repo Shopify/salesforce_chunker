@@ -16,8 +16,7 @@ module SalesforceChunker
         results = retrieve_results(batch_id, result_id)
 
         lines = results.each_line
-        headers = lines.next
-        first_line = lines.next
+        2.times { lines.next }
 
         loop do
           begin
@@ -52,13 +51,7 @@ module SalesforceChunker
     end
 
     def create_job(object, options)
-      body = {
-        "operation": @operation,
-        "object": object,
-        "contentType": "CSV",
-      }
-      body[:externalIdFieldName] = options[:external_id] if @operation == "upsert"
-      @connection.post_json("job", body, options[:headers].to_h)["id"]
+      super(object, options.merge(content_type: "CSV"))
     end
   end
 end
