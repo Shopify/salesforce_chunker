@@ -15,16 +15,20 @@ module SalesforceChunker
       retrieve_batch_results(batch_id).each do |result_id|
         results = retrieve_results(batch_id, result_id)
 
-        lines = results.each_line
-        2.times { lines.next }
+        process_csv_results(results) { |result| yield result }
+      end
+    end
 
-        loop do
-          begin
-            (@batch_size-1).times { lines.next }
-            yield(lines.next.chomp.gsub("\"", ""))
-          rescue StopIteration
-            break
-          end
+    def process_csv_results(result)
+      lines = result.each_line
+      2.times { lines.next }
+
+      loop do
+        begin
+          (@batch_size-1).times { lines.next }
+          yield(lines.next.chomp.gsub("\"", ""))
+        rescue StopIteration
+          break
         end
       end
     end
