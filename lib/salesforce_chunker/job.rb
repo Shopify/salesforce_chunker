@@ -1,3 +1,5 @@
+require "json"
+
 module SalesforceChunker
   class Job
     attr_reader :batches_count
@@ -56,7 +58,13 @@ module SalesforceChunker
 
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
-        retrieve_results(batch_id, result_id).each do |result|
+        results = retrieve_results(batch_id, result_id)
+
+        @log.info "Parsing JSON response"
+        parsed_response = JSON.parse(results)
+
+        @log.info "Yielding records"
+        parsed_response.each do |result|
           result.tap { |h| h.delete("attributes") }
           yield(result)
         end
@@ -82,7 +90,7 @@ module SalesforceChunker
     end
 
     def retrieve_results(batch_id, result_id)
-      @connection.get_json("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
+      @connection.get("job/#{@job_id}/batch/#{batch_id}/result/#{result_id}")
     end
 
     def close
