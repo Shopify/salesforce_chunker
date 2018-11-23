@@ -14,22 +14,23 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
   end
 
   def test_initialize
-
     SalesforceChunker::ManualChunkingBreakpointQuery.any_instance.expects(:create_job)
       .with("CustomObject__c", {})
       .returns("3811P00000EFQiYQAB")
 
     SalesforceChunker::ManualChunkingBreakpointQuery.any_instance.expects(:create_batch)
-      .with("Select Id From CustomObject__c", {})
-      .returns("3811P00000EFQiYQAB")
+      .with("Select Id From CustomObject__c")
+      .returns("3811P00000EFQidQAX")
+
+    SalesforceChunker::ManualChunkingBreakpointQuery.any_instance.expects(:close)
 
     job = SalesforceChunker::ManualChunkingBreakpointQuery.new(
       connection: "connect",
       object: "CustomObject__c",
       operation: "query",
-      query: "Select Id From CustomObject__c",
     )
 
+    assert_equal 1, job.instance_variable_get(:@batches_count)
     assert_equal "connect", job.instance_variable_get(:@connection)
     assert_equal "query", job.instance_variable_get(:@operation)
     assert_equal "3811P00000EFQiYQAB", job.instance_variable_get(:@job_id)
