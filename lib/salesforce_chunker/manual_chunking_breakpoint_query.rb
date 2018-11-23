@@ -22,12 +22,12 @@ module SalesforceChunker
 
     def process_csv_results(result)
       lines = result.each_line
-      2.times { lines.next }
+      headers = lines.next
 
       loop do
         begin
-          (@batch_size-1).times { lines.next }
-          yield(lines.next.chomp.gsub("\"", ""))
+          @batch_size.times { lines.next }
+          yield(lines.peek.chomp.gsub("\"", ""))
         rescue StopIteration
           break
         end
