@@ -27,9 +27,9 @@ module SalesforceChunker
       loop do
         @batch_size.times { lines.next }
         yield(lines.peek.chomp.gsub("\"", ""))
-      rescue StopIteration
-        break
       end
+    rescue StopIteration
+      nil
     end
 
     def create_batch(payload)
