@@ -30,6 +30,7 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
       operation: "query",
     )
 
+    assert_equal 100000, job.instance_variable_get(:@batch_size)
     assert_equal 1, job.instance_variable_get(:@batches_count)
     assert_equal "connect", job.instance_variable_get(:@connection)
     assert_equal "query", job.instance_variable_get(:@operation)
@@ -60,6 +61,36 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
     @job.get_batch_results("55024000002iETSAA2") { |result| actual_results.push(result) }
 
     assert_equal ["55024000002iETaAA3", "55024000002iETcAA3"], actual_results
+  end
+
+  def test_process_csv_results_smaller_or_equal_to_batch_size_returns_empty
+    csv_string = "\"Id\"\n\"55024000002iETSAA3\"\n\"55024000002iETTAA3\"\n"
+    @job.instance_variable_set(:@batch_size, 2)
+
+    actual_results = []
+    @job.process_csv_results(csv_string) { |result| actual_results.push(result) }
+
+    assert_empty actual_results
+  end
+
+  def test_process_csv_results_returns_first_after_batch_size
+    csv_string = "\"Id\"\n\"55024000002iETSAA3\"\n\"55024000002iETTAA3\"\n\"55024000002iETUAA3\"\n"
+    @job.instance_variable_set(:@batch_size, 2)
+
+    actual_results = []
+    @job.process_csv_results(csv_string) { |result| actual_results.push(result) }
+
+    assert_equal ["55024000002iETUAA3"], actual_results
+  end
+
+  def test_process_csv_results_returns_multiple
+    csv_string = "\"Id\"\n\"55024000002iETSAA3\"\n\"55024000002iETTAA3\"\n\"55024000002iETUAA3\"\n\"55024000002iETVAA3\"\n\"55024000002iETWAA3\"\n"
+    @job.instance_variable_set(:@batch_size, 2)
+
+    actual_results = []
+    @job.process_csv_results(csv_string) { |result| actual_results.push(result) }
+
+    assert_equal ["55024000002iETUAA3", "55024000002iETWAA3"], actual_results
   end
 
   def test_create_batch
