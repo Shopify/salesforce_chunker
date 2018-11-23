@@ -28,6 +28,7 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
       connection: "connect",
       object: "CustomObject__c",
       operation: "query",
+      query: "Select Id From CustomObject__c Order By Id Asc",
     )
 
     assert_equal 100000, job.instance_variable_get(:@batch_size)

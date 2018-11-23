@@ -1,11 +1,11 @@
 module SalesforceChunker
   class ManualChunkingBreakpointQuery < Job
 
-    def initialize(connection:, object:, operation:, **options)
+    def initialize(connection:, object:, operation:, query:, **options)
       @batch_size = options[:batch_size] || 100000
       super(connection: connection, object: object, operation: operation, **options)
 
-      create_batch("Select Id From #{object} Order By Id Asc")
+      create_batch(query)
       @batches_count = 1
 
       close
