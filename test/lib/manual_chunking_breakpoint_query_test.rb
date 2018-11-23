@@ -36,6 +36,32 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
     assert_equal "3811P00000EFQiYQAB", job.instance_variable_get(:@job_id)
   end
 
+  def test_get_batch_results
+    @job.expects(:retrieve_batch_results).with("55024000002iETSAA2").returns([
+      "6502E000002iETSAA3",
+      "6502E000002jETSAA3",
+    ])
+    @job.expects(:retrieve_raw_results).with("55024000002iETSAA2", "6502E000002iETSAA3").returns(
+      "\"Id\"\n\"55024000002iETSAA3\"\n\"55024000002iETTAA3\"\n\"55024000002iETUAA3\"\n\"55024000002iETVAA3\"\n"
+    )
+    @job.expects(:retrieve_raw_results).with("55024000002iETSAA2", "6502E000002jETSAA3").returns(
+      "\"Id\"\n\"55024000002iETaAA3\"\n\"55024000002iETbAA3\"\n\"55024000002iETcAA3\"\n\"55024000002iETdAA3\"\n"
+    )
+
+    @job.expects(:process_csv_results)
+      .with("\"Id\"\n\"55024000002iETSAA3\"\n\"55024000002iETTAA3\"\n\"55024000002iETUAA3\"\n\"55024000002iETVAA3\"\n")
+      .yields("55024000002iETaAA3")
+
+    @job.expects(:process_csv_results)
+      .with("\"Id\"\n\"55024000002iETaAA3\"\n\"55024000002iETbAA3\"\n\"55024000002iETcAA3\"\n\"55024000002iETdAA3\"\n")
+      .yields("55024000002iETcAA3")
+
+    actual_results = []
+    @job.get_batch_results("55024000002iETSAA2") { |result| actual_results.push(result) }
+
+    assert_equal ["55024000002iETaAA3", "55024000002iETcAA3"], actual_results
+  end
+
   def test_create_batch
     connection = mock()
     connection.expects(:post).with(

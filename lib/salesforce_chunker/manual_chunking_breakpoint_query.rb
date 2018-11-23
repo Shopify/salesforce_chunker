@@ -14,7 +14,7 @@ module SalesforceChunker
 
     def get_batch_results(batch_id)
       retrieve_batch_results(batch_id).each do |result_id|
-        results = retrieve_results(batch_id, result_id)
+        results = retrieve_raw_results(batch_id, result_id)
 
         process_csv_results(results) { |result| yield result }
       end
