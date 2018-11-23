@@ -54,8 +54,25 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
       }
     })
 
-    expected = ["3811P00000EFQiaQAX", "3811P00000EFQibQAX", "3811P00000EFQicQAX"]
+    expected = ["3811P00000EFQiaQAX"]
 
     assert_equal expected, @job.retrieve_batch_results("55024000002iETSAA2")
   end
+
+  def test_get_batch_statuses
+    connection = mock()
+    connection.expects(:get_json).with(
+      "job/3811P00000EFQiYQAX/batch",
+    ).returns({"batchInfoList" =>
+      {
+        "batchInfo" => {"id"=> "55024000002iETSAA2", "state"=> "Queued"},
+      },
+    })
+
+    @job.instance_variable_set(:@connection, connection)
+
+    assert_equal [{"id"=> "55024000002iETSAA2", "state"=> "Queued"}], @job.get_batch_statuses
+  end
+
+
 end
