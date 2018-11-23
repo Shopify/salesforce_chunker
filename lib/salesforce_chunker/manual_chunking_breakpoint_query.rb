@@ -25,12 +25,10 @@ module SalesforceChunker
       headers = lines.next
 
       loop do
-        begin
-          @batch_size.times { lines.next }
-          yield(lines.peek.chomp.gsub("\"", ""))
-        rescue StopIteration
-          break
-        end
+        @batch_size.times { lines.next }
+        yield(lines.peek.chomp.gsub("\"", ""))
+      rescue StopIteration
+        break
       end
     end
 
