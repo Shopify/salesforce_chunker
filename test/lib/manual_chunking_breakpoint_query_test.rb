@@ -13,6 +13,28 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
     @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
   end
 
+  def test_initialize
+
+    SalesforceChunker::ManualChunkingBreakpointQuery.any_instance.expects(:create_job)
+      .with("CustomObject__c", {})
+      .returns("3811P00000EFQiYQAB")
+
+    SalesforceChunker::ManualChunkingBreakpointQuery.any_instance.expects(:create_batch)
+      .with("Select Id From CustomObject__c", {})
+      .returns("3811P00000EFQiYQAB")
+
+    job = SalesforceChunker::ManualChunkingBreakpointQuery.new(
+      connection: "connect",
+      object: "CustomObject__c",
+      operation: "query",
+      query: "Select Id From CustomObject__c",
+    )
+
+    assert_equal "connect", job.instance_variable_get(:@connection)
+    assert_equal "query", job.instance_variable_get(:@operation)
+    assert_equal "3811P00000EFQiYQAB", job.instance_variable_get(:@job_id)
+  end
+
   def test_create_batch
     connection = mock()
     connection.expects(:post).with(
@@ -74,5 +96,10 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
     assert_equal [{"id"=> "55024000002iETSAA2", "state"=> "Queued"}], @job.get_batch_statuses
   end
 
+  def test_create_job_uses_csv_content_type
+    SalesforceChunker::Job.any_instance.expects(:create_job).with("Object__c", {content_type: "CSV"})
+      .returns("3811P00000YYQiYQAX")
 
+    assert_equal "3811P00000YYQiYQAX", @job.create_job("Object__c", {})
+  end
 end
