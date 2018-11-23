@@ -3,111 +3,19 @@ require "test_helper"
 class ManualChunkingQueryTest < Minitest::Test
 
   def setup
+    manual_chunking_breakpoint_query = mock()
+    manual_chunking_breakpoint_query.stubs(:download_results).with(retry_seconds: 10).yields()
+
     SalesforceChunker::ManualChunkingQuery.any_instance.stubs(:create_job)
-    SalesforceChunker::ManualChunkingQuery.any_instance.stubs(:breakpoints)
-    SalesforceChunker::ManualChunkingQuery.any_instance.stubs(:create_batches)
+    SalesforceChunker::ManualChunkingQuery.any_instance.stubs(:create_batch)
     SalesforceChunker::ManualChunkingQuery.any_instance.stubs(:close)
+    SalesforceChunker::ManualChunkingBreakpointQuery.stubs(:new).returns(manual_chunking_breakpoint_query)
     @job = SalesforceChunker::ManualChunkingQuery.new(connection: nil, object: nil, operation: "query", query: "")
+    SalesforceChunker::ManualChunkingBreakpointQuery.unstub(:new)
     SalesforceChunker::ManualChunkingQuery.any_instance.unstub(:create_job)
-    SalesforceChunker::ManualChunkingQuery.any_instance.unstub(:breakpoints)
-    SalesforceChunker::ManualChunkingQuery.any_instance.unstub(:create_batches)
+    SalesforceChunker::ManualChunkingQuery.any_instance.unstub(:create_batch)
     SalesforceChunker::ManualChunkingQuery.any_instance.unstub(:close)
     @job.instance_variable_set(:@job_id, "3811P00000EFQiYQAX")
-  end
-
-  def test_get_batch_statuses_returns_only_initial_batch
-    initial_batch = {"id"=> "55024000002iETSAA2", "state"=> "Completed"}
-
-    connection = mock()
-    connection.expects(:get_json).with(
-      "job/3811P00000EFQiYQAX/batch",
-    ).returns({"batchInfo" => [
-      initial_batch,
-    ]})
-
-    @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@initial_batch_id, "55024000002iETSAA2")
-
-    assert_equal [initial_batch], @job.get_batch_statuses
-  end
-
-  def test_get_batch_statuses_skips_initial_batch_when_others_created
-    initial_batch = {"id"=> "55024000002iETSAA2", "state"=> "Completed"}
-    another_batch = {"id"=> "55024000002iETTAA2", "state"=> "InProgress"}
-
-    connection = mock()
-    connection.expects(:get_json).with(
-      "job/3811P00000EFQiYQAX/batch",
-    ).returns({"batchInfo" => [
-      initial_batch,
-      another_batch,
-    ]})
-
-    @job.instance_variable_set(:@connection, connection)
-    @job.instance_variable_set(:@initial_batch_id, "55024000002iETSAA2")
-
-    assert_equal [another_batch], @job.get_batch_statuses
-  end
-
-  def test_breakpoints_creates_batch_correctly_and_sets_batches_count
-    @job.expects(:create_batch).with(
-      "Select Id From CustomObject82__c Where SystemModStamp >= 2018-09-15T10:00:00Z Order By Id Asc"
-    )
-    @job.stubs(:download_results).returns([].to_enum)
-
-
-    @job.breakpoints("CustomObject82__c", "Where SystemModStamp >= 2018-09-15T10:00:00Z", 3)
-
-    assert_equal 1, @job.instance_variable_get(:@batches_count)
-  end
-
-  def test_breakpoints_empty_if_smaller_than_batch_size
-    @job.stubs(:create_batch)
-    @job.stubs(:download_results).returns([
-      {"Id" => "id0"},
-      {"Id" => "id1"},
-    ].to_enum)
-
-    assert_empty @job.breakpoints("", "", 3)
-  end
-
-  def test_breakpoints_empty_if_equal_to_batch_size
-    @job.stubs(:create_batch)
-    @job.stubs(:download_results).returns([
-      {"Id" => "id0"},
-      {"Id" => "id1"},
-      {"Id" => "id2"},
-    ].to_enum)
-
-    assert_empty @job.breakpoints("", "", 3)
-  end
-
-  def test_breakpoints_returns_one_point
-    @job.stubs(:create_batch)
-    @job.stubs(:download_results).returns([
-      {"Id" => "id0"},
-      {"Id" => "id1"},
-      {"Id" => "id2"},
-      {"Id" => "id3"},
-    ].to_enum)
-
-    assert_equal ["id3"], @job.breakpoints("", "", 3)
-  end
-
-  def test_breakpoints_returns_multiple_points
-    @job.stubs(:create_batch)
-    @job.stubs(:download_results).returns([
-      {"Id" => "id0"},
-      {"Id" => "id1"},
-      {"Id" => "id2"},
-      {"Id" => "id3"},
-      {"Id" => "id4"},
-      {"Id" => "id5"},
-      {"Id" => "id6"},
-      {"Id" => "id7"},
-    ].to_enum)
-
-    assert_equal ["id3", "id6"], @job.breakpoints("", "", 3)
   end
 
   def test_where_clause_exists
@@ -159,19 +67,28 @@ class ManualChunkingQueryTest < Minitest::Test
     @job.create_batches(query, ["id23", "id59", "id83"], where_clause)
   end
 
-
   def test_initialize_creates_job_and_batches
+    manual_chunking_breakpoint_query = mock()
+    manual_chunking_breakpoint_query.expects(:download_results).with(retry_seconds: 10)
+      .returns(["55024000002iETWAA3"].to_enum)
+
+    SalesforceChunker::ManualChunkingBreakpointQuery.expects(:new).with(
+      has_entries(
+        connection: "connect",
+        object: "CustomObject__c",
+        operation: "query",
+        batch_size: 8600,
+        query: "Select Id From CustomObject__c Where SystemModStamp >= 2018-09-12T00:00:00Z Order By Id Asc",
+      )
+    ).returns(manual_chunking_breakpoint_query)
+
     SalesforceChunker::Job.any_instance.expects(:create_job)
       .with("CustomObject__c", {})
       .returns("3811P00000EFQiYQAZ")
 
-    SalesforceChunker::ManualChunkingQuery.any_instance.expects(:breakpoints)
-      .with("CustomObject__c", "Where SystemModStamp >= 2018-09-12T00:00:00Z", 8600)
-      .returns(["id_123"])
-
     SalesforceChunker::ManualChunkingQuery.any_instance.expects(:create_batches).with(
       "Select CustomColumn__c From CustomObject__c Where SystemModStamp >= 2018-09-12T00:00:00Z",
-      ["id_123"],
+      ["55024000002iETWAA3"],
       "Where SystemModStamp >= 2018-09-12T00:00:00Z",
     )
 
