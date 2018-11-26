@@ -29,20 +29,27 @@ module SalesforceChunker
       downloaded_batches = []
 
       loop do
+        results_downloaded = false
         @log.info "Retrieving batch status information"
         get_completed_batches.each do |batch|
           next if downloaded_batches.include?(batch["id"])
           @log.info "Batch #{downloaded_batches.length + 1} of #{@batches_count || '?'}: " \
             "retrieving #{batch["numberRecordsProcessed"]} records"
-          get_batch_results(batch["id"]) { |result| yield(result) } if batch["numberRecordsProcessed"].to_i > 0
+          if batch["numberRecordsProcessed"].to_i > 0
+            get_batch_results(batch["id"]) { |result| yield(result) }
+            results_downloaded = true
+          end
           downloaded_batches.append(batch["id"])
         end
 
         break if @batches_count && downloaded_batches.length == @batches_count
-        raise TimeoutError, "Timeout during batch processing" if Time.now.utc > timeout_at
 
-        @log.info "Waiting #{retry_seconds} seconds"
-        sleep(retry_seconds)
+        unless results_downloaded
+          raise TimeoutError, "Timeout during batch processing" if Time.now.utc > timeout_at
+
+          @log.info "Waiting #{retry_seconds} seconds"
+          sleep(retry_seconds)
+        end
       end
       
       @log.info "Completed"

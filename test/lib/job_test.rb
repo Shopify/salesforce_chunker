@@ -237,12 +237,12 @@ class JobTest < Minitest::Test
       {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3},
     ]
 
-    second_completed_batches = [
+    final_completed_batches = [
       {"id" => "55024000002iETTAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 1},
       {"id" => "55024000002iETUAA2", "state" => "Completed", "numberRecordsFailed" => 0, "numberRecordsProcessed" => 3},
     ]
 
-    @job.expects(:get_completed_batches).twice.returns(first_completed_batches, second_completed_batches)
+    @job.expects(:get_completed_batches).times(3).returns(first_completed_batches, first_completed_batches, final_completed_batches)
 
     @job.expects(:get_batch_results).with("55024000002iETUAA2").multiple_yields(
       [{"CustomColumn__c" => "abc"}],
