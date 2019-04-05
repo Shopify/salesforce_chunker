@@ -34,6 +34,17 @@ class SalesforceChunkerTest < Minitest::Test
     assert_equal [{"CustomColumn__c" => "abc"}], actual_results.to_a
   end
 
+  def test_query_include_deleted
+    job = mock()
+    job.expects(:download_results).yields({"CustomColumn__c" => "abc"})
+    SalesforceChunker::PrimaryKeyChunkingQuery.stubs(:new).with(has_entry(operation: "queryAll")).returns(job)
+
+    actual_results = []
+    @client.query(query: "", object: "", retry_seconds: 0, include_deleted: true) { |result| actual_results << result }
+
+    assert_equal [{"CustomColumn__c" => "abc"}], actual_results
+  end
+
   def test_query_with_job_type_single_batch
     job = mock()
     job.expects(:download_results).yields({"CustomColumn__c" => "abc"})

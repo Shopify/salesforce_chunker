@@ -4,7 +4,7 @@ module SalesforceChunker
   class Job
     attr_reader :batches_count
 
-    QUERY_OPERATIONS = ["query", "queryall"].freeze
+    QUERY_OPERATIONS = ["query", "queryAll"].freeze
     DEFAULT_RETRY_SECONDS = 10
     DEFAULT_TIMEOUT_SECONDS = 3600
 
