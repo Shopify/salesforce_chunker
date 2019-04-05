@@ -76,6 +76,7 @@ options = {
   logger:           nil,
   log_output:       STDOUT,
   job_type:         "primary_key_chunking",
+  include_deleted:  true,
 }
 
 client.query(options) do |result|
@@ -93,6 +94,7 @@ end
 | logger | optional | logger to use. Must be instance of or similar to rails logger. |
 | log_output | optional | log output to use. i.e. `STDOUT`. |
 | job_type | optional | defaults to `"primary_key_chunking"`. Can also be set to `"single_batch"`. |
+| include_deleted | optional | defaults to `false`. Whether to include deleted records. |
 
 `query` can either be called with a block, or will return an enumerator:
 
