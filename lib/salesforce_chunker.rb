@@ -29,10 +29,12 @@ module SalesforceChunker
         job_class = SalesforceChunker::PrimaryKeyChunkingQuery
       end
 
+      operation = options[:include_deleted] ? "queryAll" : "query"
+
       job_params = {
         connection: @connection,
         object: object,
-        operation: "query",
+        operation: operation,
         query: query,
         **options.slice(:batch_size, :logger, :log_output)
       }
