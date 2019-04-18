@@ -21,7 +21,6 @@ module SalesforceChunker
       @default_headers = {
         "Content-Type": "application/json",
         "X-SFDC-Session": result["sessionId"],
-        "Accept-Encoding": "gzip",
       }
     rescue NoMethodError
       raise ConnectionError, response["Envelope"]["Body"]["Fault"]["faultstring"]
