@@ -1,4 +1,5 @@
 require "httparty"
+require 'pp'
 
 module SalesforceChunker
   class Connection
@@ -33,7 +34,11 @@ module SalesforceChunker
 
     def post(url, body, headers={})
       @log.info "POST: #{url}"
+      pp body
+      pp headers
+
       response = HTTParty.post(@base_url + url, headers: @default_headers.merge(headers), body: body)
+      pp response.headers
       self.class.check_response_error(response.parsed_response)
     end
 
