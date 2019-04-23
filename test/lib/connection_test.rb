@@ -38,7 +38,6 @@ class ConnectionTest < Minitest::Test
     expected_headers = {
       "Content-Type": "application/json",
       "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
-      "Accept-Encoding": "gzip",
     }
     HTTParty.expects(:post).with(expected_url, body: "blah", headers: expected_headers).returns(json_response)
 
@@ -52,7 +51,6 @@ class ConnectionTest < Minitest::Test
     expected_headers = {
       "Content-Type": "application/json",
       "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
-      "Accept-Encoding": "gzip",
     }
     HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
 
@@ -66,7 +64,6 @@ class ConnectionTest < Minitest::Test
     expected_headers = {
       "Content-Type": "application/json",
       "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
-      "Accept-Encoding": "gzip",
     }
     HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
 
@@ -79,7 +76,6 @@ class ConnectionTest < Minitest::Test
     expected_headers = {
       "Content-Type": "text/csv",
       "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
-      "Accept-Encoding": "gzip",
       "Foo": "bar",
     }
     HTTParty.expects(:get).with(expected_url, headers: expected_headers).returns(json_response)
