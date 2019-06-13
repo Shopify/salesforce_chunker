@@ -71,6 +71,42 @@ class ConnectionTest < Minitest::Test
     assert_equal "{\"a\":2}", response
   end
 
+  def test_timeout_is_retried
+    expected_url = "https://na99.salesforce.com/services/async/42.0/getroute"
+    expected_headers = {
+      "Content-Type": "application/json",
+      "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
+    }
+    HTTParty.expects(:get).twice.with(expected_url, headers: expected_headers).raises(Net::ReadTimeout).then.returns(json_response)
+
+    # suppress warning: already initialized constant
+    v, $VERBOSE = $VERBOSE, nil
+    SalesforceChunker::Connection.send(:const_set, :SLEEP_DURATION, 0)
+    $VERBOSE = v
+
+    response = @connection.get("getroute")
+    assert_equal "{\"a\":2}", response
+  end
+
+  def test_timeout_raised_after_max_tries
+    expected_url = "https://na99.salesforce.com/services/async/42.0/getroute"
+    expected_headers = {
+      "Content-Type": "application/json",
+      "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
+    }
+    HTTParty.expects(:get).twice.with(expected_url, headers: expected_headers).raises(Net::ReadTimeout).twice()
+
+    # suppress warning: already initialized constant
+    v, $VERBOSE = $VERBOSE, nil
+    SalesforceChunker::Connection.send(:const_set, :SLEEP_DURATION, 0)
+    SalesforceChunker::Connection.send(:const_set, :MAX_TRIES, 2)
+    $VERBOSE = v
+
+    assert_raises Net::ReadTimeout do
+      response = @connection.get("getroute")
+    end
+  end
+
   def test_headers_can_be_overridden
     expected_url = "https://na99.salesforce.com/services/async/42.0/getroute"
     expected_headers = {

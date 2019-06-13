@@ -32,19 +32,25 @@ module SalesforceChunker
 
     def post(url, body, headers={})
       @log.info "POST: #{url}"
-      response = HTTParty.post(@base_url + url, headers: @default_headers.merge(headers), body: body)
+      response = self.class.retry_block(log: @log, rescues: Net::ReadTimeout) do
+        HTTParty.post(@base_url + url, headers: @default_headers.merge(headers), body: body)
+      end
       self.class.check_response_error(response.parsed_response)
     end
 
     def get_json(url, headers={})
       @log.info "GET: #{url}"
-      response = HTTParty.get(@base_url + url, headers: @default_headers.merge(headers))
+      response = self.class.retry_block(log: @log, rescues: Net::ReadTimeout) do
+        HTTParty.get(@base_url + url, headers: @default_headers.merge(headers))
+      end
       self.class.check_response_error(response.parsed_response)
     end
 
     def get(url, headers={})
       @log.info "GET: #{url}"
-      HTTParty.get(@base_url + url, headers: @default_headers.merge(headers)).body
+      self.class.retry_block(log: @log, rescues: Net::ReadTimeout) do
+        HTTParty.get(@base_url + url, headers: @default_headers.merge(headers)).body
+      end
     end
 
     private
@@ -74,6 +80,27 @@ module SalesforceChunker
         raise ResponseError, "#{response["exceptionCode"]}: #{response["exceptionMessage"]}"
       else
         response
+      end
+    end
+
+    MAX_TRIES = 5
+    SLEEP_DURATION = 10
+
+    def self.retry_block(log: log, tries: MAX_TRIES, sleep_duration: SLEEP_DURATION, rescues:, &block)
+      attempt_number = 1
+
+      begin
+        return block.call
+      rescue *rescues => e
+        log.warn "Retry block attempt #{attempt_number} rescued exception: #{e}"
+        if attempt_number >= tries
+          log.error "Maximum number of tries (#{tries}) was reached in retry_block. Raising exception."
+          raise e
+        else
+          attempt_number += 1
+          sleep sleep_duration
+          retry
+        end
       end
     end
   end
