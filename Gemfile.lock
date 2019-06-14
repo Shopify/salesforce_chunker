@@ -1,21 +1,21 @@
 PATH
   remote: .
   specs:
-    salesforce_chunker (1.1.1)
-      httparty (~> 0.13)
+    salesforce_chunker (1.2.0)
+      httparty (~> 0.15)
 
 GEM
   remote: https://rubygems.org/
   specs:
     coderay (1.1.2)
-    httparty (0.16.3)
+    httparty (0.17.0)
       mime-types (~> 3.0)
       multi_xml (>= 0.5.2)
     metaclass (0.0.4)
     method_source (0.9.0)
     mime-types (3.2.2)
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2018.0812)
+    mime-types-data (3.2019.0331)
     minitest (5.11.3)
     mocha (1.5.0)
       metaclass (~> 0.0.1)
@@ -37,4 +37,4 @@ DEPENDENCIES
   salesforce_chunker!
 
 BUNDLED WITH
-   1.17.1
+   1.17.3

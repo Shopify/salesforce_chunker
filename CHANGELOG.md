@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.2.0 - 2019-06-14
+
+  - Added an include_deleted flag to perform a queryAll operation.
+  - Disabled explicit GZIP encoding to work with the latest versions of HTTParty.
+  - Added a retry for requests to recover from Net::ReadTimeout errors
+
 ## 1.1.1 - 2018-11-26
 
   - Reimplemented ManualChunkingQuery using CSV batch results.
