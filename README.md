@@ -55,6 +55,9 @@ client = SalesforceChunker::Client.new(
 | security_token | may be required depending on your Salesforce setup |
 | domain | optional. defaults to `"login"`. |
 | salesforce_version | optional. defaults to `"42.0"`. Must be >= `"33.0"` to use PK Chunking. |
+| logger | optional. logger to use. Must be instance of or similar to rails logger. Use here if you want to log all API page requests. |
+| log_output | optional. log output to use. i.e. `STDOUT`. |
+
 
 #### Functions
 
