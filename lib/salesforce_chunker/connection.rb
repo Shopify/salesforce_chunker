@@ -86,7 +86,7 @@ module SalesforceChunker
     MAX_TRIES = 5
     SLEEP_DURATION = 10
 
-    def self.retry_block(log: log, tries: MAX_TRIES, sleep_duration: SLEEP_DURATION, rescues:, &block)
+    def self.retry_block(log: Logger.new(nil), tries: MAX_TRIES, sleep_duration: SLEEP_DURATION, rescues:, &block)
       attempt_number = 1
 
       begin
