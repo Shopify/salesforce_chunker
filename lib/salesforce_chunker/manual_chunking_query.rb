@@ -16,7 +16,7 @@ module SalesforceChunker
         batch_size: batch_size,
         query: "Select Id From #{object} #{where_clause} Order By Id Asc",
       )
-      breakpoints = breakpoint_creation_job.download_results(retry_seconds: 10).to_a
+      breakpoints = breakpoint_creation_job.download_results(retry_seconds: options[:retry_seconds] || 10).to_a
       @log.info(breakpoints)
 
       # super(connection: connection, object: object, operation: operation, logger: @log, **options)
