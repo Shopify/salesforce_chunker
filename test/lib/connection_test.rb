@@ -77,7 +77,7 @@ class ConnectionTest < Minitest::Test
       "Content-Type": "application/json",
       "X-SFDC-Session": "3ea96c71f254c3f2e6ce3a2b2b723c87",
     }
-    HTTParty.expects(:get).twice.with(expected_url, headers: expected_headers).raises(Net::ReadTimeout).then.returns(json_response)
+    HTTParty.expects(:get).twice.with(expected_url, headers: expected_headers).raises(IOError).then.returns(json_response)
 
     # suppress warning: already initialized constant
     v, $VERBOSE = $VERBOSE, nil
