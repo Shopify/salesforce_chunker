@@ -63,6 +63,7 @@ client = SalesforceChunker::Client.new(
 | query |
 | single_batch_query | calls `query(job_type: "single_batch", **options)`  |
 | primary_key_chunking_query | calls `query(job_type: "primary_key_chunking", **options)` |
+| manual_chunking_query | calls `query(job_type: "manual_chunking", **options)` |
 
 #### Query
 
@@ -88,12 +89,12 @@ end
 | --- | --- | --- |
 | query | required | SOQL query. |
 | object | required | Salesforce Object type. |
-| batch_size | optional | defaults to `100000`. Number of records to process in a batch. (Only for PK Chunking) |
+| batch_size | optional | defaults to `100000`. Number of records to process in a batch. (Not used in Single Batch jobs) |
 | retry_seconds | optional | defaults to `10`. Number of seconds to wait before querying API for updated results. |
-| timeout_seconds | optional | defaults to `3600`. Number of seconds to wait before query is killed. |
+| timeout_seconds | optional | defaults to `3600`. Number of seconds to wait for a batch to process before job is killed. |
 | logger | optional | logger to use. Must be instance of or similar to rails logger. |
 | log_output | optional | log output to use. i.e. `STDOUT`. |
-| job_type | optional | defaults to `"primary_key_chunking"`. Can also be set to `"single_batch"`. |
+| job_type | optional | defaults to `"primary_key_chunking"`. Can also be set to `"single_batch"` or `"manual_chunking`. |
 | include_deleted | optional | defaults to `false`. Whether to include deleted records. |
 
 `query` can either be called with a block, or will return an enumerator:
@@ -101,6 +102,34 @@ end
 ```ruby
 names = client.query(query, object, options).map { |result| result["Name"] }
 ```
+
+### A discussion about Single Batch, Primary Key Chunking, and Manual Chunking job types.
+
+One of the advantages of the Salesforce Bulk API over the other Salesforce APIs is the ability for Salesforce to process a number of requests (either queries or uploads) in parallel on their servers. The request chunks are referred to as batches.
+
+#### Single Batch Query
+
+In a single batch query, one SOQL statement is executed as a single batch. This works best if the total number of records to return is fewer than around 100,000 depending on memory usage and the number of fields being returned.
+
+#### Primary Key Chunking Query
+
+In Primary Key Chunking, the internal Salesforce PK chunking flag is used. Salesforce will create a number of batches automatically based on an internal Id index. See https://developer.salesforce.com/docs/atlas.en-us.api_asynch.meta/api_asynch/async_api_headers_enable_pk_chunking.htm
+
+#### Manual Chunking Query
+
+This approach is called "Manual" Chunking because it is our own implementation of PK Chunking in this gem. The gem downloads a CSV ordered list of all Ids it needs to download, and then uses this list to generate breakpoints that it uses to create batches.
+
+#### Primary Key Chunking Query vs Manual Chunking Query
+
+Advantages of Manual Chunking:
+
+- Manual Chunking takes into account the where clause in the SOQL statement. For example, if you are filtering a small number of a large object count, say 250k out of 20M Objects, then Manual Chunking will split this into 3 batches of max 100k while PK chunking will split this into 200 batches, which will use up batches and API requests against your account and take a longer amount of time.
+- Any object can use Manual Chunking (according to Salesforce, PK chunking is supported for the following objects: Account, Asset, Campaign, CampaignMember, Case, CaseHistory, Contact, Event, EventRelation, Lead, LoginHistory, Opportunity, Task, User, and custom objects.)
+
+Advantages of Primary Key Chunking:
+
+- Primary Key Chunking appears to be slightly faster, if using a PK Chunking eligible object and no where clause.
+- Primary Key Chunking may be less buggy because many more people depend on the Salesforce API than this gem.
 
 ### Under the hood: SalesforceChunker::Job
 
