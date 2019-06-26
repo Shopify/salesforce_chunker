@@ -51,17 +51,17 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
     )
 
     @job.expects(:process_csv_results)
-      .with("\"Id\"\n\"55024000002iETSAA3\"\n\"55024000002iETTAA3\"\n\"55024000002iETUAA3\"\n\"55024000002iETVAA3\"\n")
-      .yields("55024000002iETaAA3")
+      .with("\"Id\"\n\"55024000002iETSAA3\"\n\"55024000002iETTAA3\"\n\"55024000002iETUAA3\"\n\"55024000002iETVAA3\"\n", false)
+      .yields("55024000002iETUAA3")
 
     @job.expects(:process_csv_results)
-      .with("\"Id\"\n\"55024000002iETaAA3\"\n\"55024000002iETbAA3\"\n\"55024000002iETcAA3\"\n\"55024000002iETdAA3\"\n")
-      .yields("55024000002iETcAA3")
+      .with("\"Id\"\n\"55024000002iETaAA3\"\n\"55024000002iETbAA3\"\n\"55024000002iETcAA3\"\n\"55024000002iETdAA3\"\n", true)
+      .multiple_yields("55024000002iETaAA3", "55024000002iETcAA3")
 
     actual_results = []
     @job.get_batch_results("55024000002iETSAA2") { |result| actual_results.push(result) }
 
-    assert_equal ["55024000002iETaAA3", "55024000002iETcAA3"], actual_results
+    assert_equal ["55024000002iETUAA3", "55024000002iETaAA3", "55024000002iETcAA3"], actual_results
   end
 
   def test_process_csv_results_smaller_or_equal_to_batch_size_returns_empty
@@ -69,7 +69,7 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
     @job.instance_variable_set(:@batch_size, 2)
 
     actual_results = []
-    @job.process_csv_results(csv_string) { |result| actual_results.push(result) }
+    @job.process_csv_results(csv_string, false) { |result| actual_results.push(result) }
 
     assert_empty actual_results
   end
@@ -79,7 +79,7 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
     @job.instance_variable_set(:@batch_size, 2)
 
     actual_results = []
-    @job.process_csv_results(csv_string) { |result| actual_results.push(result) }
+    @job.process_csv_results(csv_string, false) { |result| actual_results.push(result) }
 
     assert_equal ["55024000002iETUAA3"], actual_results
   end
@@ -89,9 +89,19 @@ class ManualChunkingBreakpointQueryTest < Minitest::Test
     @job.instance_variable_set(:@batch_size, 2)
 
     actual_results = []
-    @job.process_csv_results(csv_string) { |result| actual_results.push(result) }
+    @job.process_csv_results(csv_string, false) { |result| actual_results.push(result) }
 
     assert_equal ["55024000002iETUAA3", "55024000002iETWAA3"], actual_results
+  end
+
+  def test_process_csv_results_returns_multiple_include_first_element
+    csv_string = "\"Id\"\n\"55024000002iETSAA3\"\n\"55024000002iETTAA3\"\n\"55024000002iETUAA3\"\n\"55024000002iETVAA3\"\n\"55024000002iETWAA3\"\n"
+    @job.instance_variable_set(:@batch_size, 2)
+
+    actual_results = []
+    @job.process_csv_results(csv_string, true) { |result| actual_results.push(result) }
+
+    assert_equal ["55024000002iETSAA3", "55024000002iETUAA3", "55024000002iETWAA3"], actual_results
   end
 
   def test_create_batch

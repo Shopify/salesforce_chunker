@@ -12,17 +12,19 @@ module SalesforceChunker
     end
 
     def get_batch_results(batch_id)
-      retrieve_batch_results(batch_id).each do |result_id|
+      retrieve_batch_results(batch_id).each_with_index do |result_id, result_index|
         results = retrieve_raw_results(batch_id, result_id)
 
         @log.info "Generating breakpoints from CSV results"
-        process_csv_results(results) { |result| yield result }
+        process_csv_results(results, result_index > 0) { |result| yield result }
       end
     end
 
-    def process_csv_results(result)
-      lines = result.each_line
+    def process_csv_results(input, include_first_element)
+      lines = input.each_line
       headers = lines.next
+
+      yield(lines.peek.chomp.gsub("\"", "")) if include_first_element
 
       loop do
         @batch_size.times { lines.next }
