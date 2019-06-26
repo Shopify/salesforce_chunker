@@ -1,10 +1,16 @@
 # CHANGELOG
 
+## 1.2.1 - 2019-06-26
+
+  - Fixed bug in Manual Chunking that could result in larger batches.
+  - Added IOError to the types of errors that are retried.
+  - Removed circular reference and warning about it.
+
 ## 1.2.0 - 2019-06-14
 
   - Added an include_deleted flag to perform a queryAll operation.
   - Disabled explicit GZIP encoding to work with the latest versions of HTTParty.
-  - Added a retry for requests to recover from Net::ReadTimeout errors
+  - Added a retry for requests to recover from Net::ReadTimeout errors.
 
 ## 1.1.1 - 2018-11-26
 
