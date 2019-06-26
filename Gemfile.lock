@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    salesforce_chunker (1.2.0)
+    salesforce_chunker (1.2.1)
       httparty (~> 0.15)
 
 GEM
