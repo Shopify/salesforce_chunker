@@ -41,7 +41,7 @@ module SalesforceChunker
       job_params[:logger] = @log if job_params[:logger].nil? && job_params[:log_output].nil?
 
       job = job_class.new(**job_params)
-      job.download_results(**options.slice(:timeout, :retry_seconds)) { |result| yield(result) }
+      job.download_results(**options.slice(:timeout_seconds, :retry_seconds)) { |result| yield(result) }
     end
 
     def single_batch_query(**options)
