@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.2.2 - 2019-06-24
+
+  - Fixed a bug in the `timeout_seconds` option where setting it didn't take effect.
+
 ## 1.2.1 - 2019-06-26
 
   - Fixed bug in Manual Chunking that could result in larger batches.
