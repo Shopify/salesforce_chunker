@@ -4,7 +4,7 @@
 name: salesforce-chunker
 
 up:
-- ruby: 2.5.0
+- ruby
 - bundler
 
 commands:
