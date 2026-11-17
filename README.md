@@ -1,4 +1,7 @@
-# SalesforceChunker
+# [Deprecated] SalesforceChunker
+
+> [!WARNING]  
+> This repository is no longer maintained. It has been archived and receives no updates or security fixes.
 
 The `salesforce_chunker` gem is a ruby library for interacting with the Salesforce Bulk API. It was primarily designed as an extractor to handle queries using batching and [Primary Key Chunking](https://developer.salesforce.com/docs/atlas.en-us.api_asynch.meta/api_asynch/async_api_headers_enable_pk_chunking.htm). 
 
